@@ -30,14 +30,6 @@
 
 static int _col = 8;
 
-//static uint64_t doubleWordFlip64(const uint64_t n) {
-//    return n << 32 | n >> 32;
-//}
-//
-//static uint64_t wordFlip64(const uint64_t n) {
-//    return n << 48 | n >> 48 | (n & 0xFFFF0000) << 16 | (n & 0xFFFF00000000) >> 16;
-//}
-
 template <typename T>
 T swap_endian(T u)
 {
@@ -71,7 +63,7 @@ static std::string listHighColor(const void *data, const size_t lengthInBytes)
         
 #ifndef __LITTLE_ENDIAN__
         /*
-         This platform utilizes little-endian, not big-endian. To ensure
+         This platform utilizes big-endian, not little-endian. To ensure
          that data is processed correctly when generating the list, we
          must convert between big-endian and little-endian.
          */
@@ -102,7 +94,7 @@ static std::string listTrueColor(const void *data, const size_t lengthInBytes)
         
 #ifndef __LITTLE_ENDIAN__
         /*
-         This platform utilizes little-endian, not big-endian. To ensure
+         This platform utilizes big-endian, not little-endian. To ensure
          that data is processed correctly when generating the list, we
          must convert between big-endian and little-endian.
          */
@@ -134,7 +126,7 @@ std::string list64(const void *data, const size_t lengthInBytes)
         
 #ifndef __LITTLE_ENDIAN__
         /*
-         This platform utilizes little-endian, not big-endian. To ensure
+         This platform utilizes big-endian, not little-endian. To ensure
          that data is processed correctly when generating the list, we
          must convert between big-endian and little-endian.
          */
