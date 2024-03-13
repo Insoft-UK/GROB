@@ -53,11 +53,15 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/usr/local/var/www/downloads/code/prime/pp/Mad/mad.bmp"
+            argument = "$(PROJECT_DIR)/bmp/example.bmp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-o /usr/local/var/www/downloads/code/prime/pp/Mad/mad.txt"
+            argument = "-o $(PROJECT_DIR)/ppl/example"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--p+"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

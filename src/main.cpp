@@ -153,6 +153,7 @@ void usage(void)
     std::cout << " -o, --out-file    file\n";
     std::cout << " -n, --name        custom name\n";
     std::cout << " -g, --grob        graphic object 1-9 to use if file is an image\n";
+    std::cout << " -p, --p+          wrap ppl code between #PPL...#end for p+\n";
     std::cout << " -h, --help        show help.\n";
     std::cout << " --version         displays the full version number.\n";
 }
@@ -218,6 +219,7 @@ void saveAs(std::string& filename, const std::string& str) {
 int main(int argc, const char * argv[]) {
     std::string ifilename, ofilename, prefix, sufix, name;
     int grob = 1;
+    bool pplus = false;
 
     if ( argc == 1 )
     {
@@ -229,7 +231,7 @@ int main(int argc, const char * argv[]) {
         if ( strcmp( argv[n], "-o" ) == 0 || strcmp( argv[n], "--out" ) == 0 ) {
             if ( n + 1 >= argc ) {
                 error();
-                exit(0x64);
+                exit(100);
             }
             ofilename = argv[n + 1];
             if (std::string::npos == ofilename.rfind('.')) {
@@ -248,6 +250,11 @@ int main(int argc, const char * argv[]) {
         if ( strcmp( argv[n], "--version" ) == 0 ) {
             version();
             return 0;
+        }
+        
+        if ( strcmp( argv[n], "-p" ) == 0 || strcmp( argv[n], "--p+" ) == 0 ) {
+            pplus = true;
+            continue;
         }
         
         if ( strcmp( argv[n], "-g" ) == 0 || strcmp( argv[n], "--grob" ) == 0 ) {
@@ -316,7 +323,9 @@ int main(int argc, const char * argv[]) {
     
     if (data.fmt == List::Format::TrueColor || data.fmt == List::Format::HighColor) {
         std::ostringstream os;
-        os << "#PPL\nDIMGROB_P(G1," << data.width << "," << data.height << "," << List::ppl(data.bytes, data.length, data.fmt, data.width / (List::Format::HighColor == data.fmt ? 4 : 2)) << ");\n#end\n";
+        if (pplus) os << "#PPL\n";
+        os << "DIMGROB_P(G1," << data.width << "," << data.height << "," << List::ppl(data.bytes, data.length, data.fmt, data.width / (List::Format::HighColor == data.fmt ? 4 : 2)) << ");\n";
+        if (pplus) os << "#end\n";
         utf8 = os.str();
     } else {
         if (name.empty()) {
@@ -324,7 +333,11 @@ int main(int argc, const char * argv[]) {
             if (std::string::npos != s.rfind('/')) s = s.substr(s.rfind('/') + 1, s.length() - s.rfind('/') - 1);
             name = regex_replace(s, std::regex(R"(\.\w+)"), "");
         }
-        utf8 = "#PPL\nLOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n#end\n";
+        if (pplus)
+            utf8 = "#PPL\nLOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n#end\n";
+        else
+            utf8 = "LOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n";
+        
     }
     
     free(data.bytes);
