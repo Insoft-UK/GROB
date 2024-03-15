@@ -24,8 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		13166E862BA1384F00D1E6F0 /* bmp */ = {isa = PBXFileReference; lastKnownFileType = folder; path = bmp; sourceTree = "<group>"; };
-		13166E872BA1385E00D1E6F0 /* hpprgm */ = {isa = PBXFileReference; lastKnownFileType = folder; path = hpprgm; sourceTree = "<group>"; };
+		13166E872BA1385E00D1E6F0 /* example */ = {isa = PBXFileReference; lastKnownFileType = folder; path = example; sourceTree = "<group>"; };
 		1352EDEE2B4786BC003130E4 /* build.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = build.h; sourceTree = "<group>"; };
 		1352EDF12B4786BC003130E4 /* List.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = List.hpp; sourceTree = "<group>"; };
 		1352EDF22B4786BC003130E4 /* build.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.txt; sourceTree = "<group>"; };
@@ -60,8 +59,7 @@
 		137FB27C2A03B06500AEFDF2 = {
 			isa = PBXGroup;
 			children = (
-				13166E872BA1385E00D1E6F0 /* hpprgm */,
-				13166E862BA1384F00D1E6F0 /* bmp */,
+				13166E872BA1385E00D1E6F0 /* example */,
 				1352EDEC2B4786BC003130E4 /* src */,
 				137FB2862A03B06500AEFDF2 /* Products */,
 			);

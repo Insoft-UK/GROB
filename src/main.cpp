@@ -325,7 +325,7 @@ int main(int argc, const char * argv[]) {
         std::ostringstream os;
         if (pplus) os << "#PPL\n";
         os << "DIMGROB_P(G1," << data.width << "," << data.height << "," << List::ppl(data.bytes, data.length, data.fmt, data.width / (List::Format::HighColor == data.fmt ? 4 : 2)) << ");\n";
-        if (pplus) os << "#end\n";
+        if (pplus) os << "#END\n";
         utf8 = os.str();
     } else {
         if (name.empty()) {
@@ -334,7 +334,7 @@ int main(int argc, const char * argv[]) {
             name = regex_replace(s, std::regex(R"(\.\w+)"), "");
         }
         if (pplus)
-            utf8 = "#PPL\nLOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n#end\n";
+            utf8 = "#PPL\nLOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n#END\n";
         else
             utf8 = "LOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n";
         

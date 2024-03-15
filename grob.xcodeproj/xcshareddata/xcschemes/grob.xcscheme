@@ -53,11 +53,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/bmp/example.bmp"
+            argument = "$(PROJECT_DIR)/example/example.bmp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-o $(PROJECT_DIR)/hpprgm/example"
+            argument = "-o $(PROJECT_DIR)/example/example"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
