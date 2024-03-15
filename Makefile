@@ -1,2 +1,2 @@
 grob:
-	g++ -std=c++20 src/*.cpp -o grob -O
+	g++ -std=c++20 src/*.cpp -o bin/grob -O

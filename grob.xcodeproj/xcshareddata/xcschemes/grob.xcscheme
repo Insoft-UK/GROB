@@ -57,7 +57,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-o $(PROJECT_DIR)/ppl/example"
+            argument = "-o $(PROJECT_DIR)/hpprgm/example"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
