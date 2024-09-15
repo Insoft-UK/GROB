@@ -1,2 +1,5 @@
 # GROB
- Utility for generating GROB PPL code for the HP Prime from a BMP image.
+A utility for generating PPL code from an image file for use with the BLIT and BLIT_P functions on the HP Prime.
+
+> [!NOTE]
+The only image file format currently supported by this utility tool is the Bitmap (BMP) format, with 16-bit, 24-bit, or 32-bit color depth.
