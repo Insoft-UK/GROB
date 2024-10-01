@@ -28,6 +28,7 @@
 #include <regex>
 #include <cstring>
 #include <iomanip>
+#include <cstdint>
 #include "build.h"
 #include "List.hpp"
 
@@ -143,37 +144,91 @@ static void loadBinaryFile(const char* filename, Data &data) {
 
 // MARK: - Command Line
 
-void error(void)
+/*
+ The decimalToBase24 function converts a given
+ base 10 integer into its base 24 representation using a
+ specific set of characters. The character set is
+ comprised of the following 24 symbols:
+
+     •    Numbers: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+     •    Letters: C, D, F, H, J, K, M, N, R, U, V, W, X, Y
+     
+ Character Selection:
+ The choice of characters was made to avoid confusion
+ with common alphanumeric representations, ensuring
+ that each character is visually distinct and easily
+ recognizable. This set excludes characters that closely
+ resemble each other or numerical digits, promoting
+ clarity in representation.
+ */
+static std::string decimalToBase24(int num) {
+    if (num == 0) {
+        return "C";
+    }
+
+    const std::string base24Chars = "0123456789CDFHJKMNRUVWXY";
+    std::string base24;
+
+    while (num > 0) {
+        int remainder = num % 24;
+        base24 = base24Chars[remainder] + base24; // Prepend character
+        num /= 24; // Integer division
+    }
+
+    return base24;
+}
+
+static std::string getBuildCode(void) {
+    std::string str;
+    int majorVersionNumber = BUILD_NUMBER / 100000;
+    str = std::to_string(majorVersionNumber) + decimalToBase24(BUILD_NUMBER - majorVersionNumber * 100000);
+    return str;
+}
+
+void help(void)
 {
-    std::cout << "grob: try 'grob --help' for more information\n";
+    int rev = BUILD_NUMBER / 1000 % 10;
+    
+    std::cout << "Copyright (C) 2024 Insoft. All rights reserved.\n";
+    std::cout << "Insoft GROB version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << (rev ? "." + std::to_string(rev) : "")
+    << " (BUILD " << getBuildCode() << "-" << decimalToBase24(BUILD_DATE) << ")\n";
+    std::cout << "\n";
+    std::cout << "Usage: grob <input-file> [-o <output-file>] [-n] [-g] \n";
+    std::cout << "\n";
+    std::cout << "Options:\n";
+    std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
+    std::cout << "  -n                         Custom name\n";
+    std::cout << "  -g                         Graphic object 1-9 to use if file is an image\n";
+    std::cout << "  -p+                        Wrap PPL code between #PPL...#end for P+\n";
+    std::cout << "\n";
+    std::cout << "Additional Commands:\n";
+    std::cout << "  grob {-version | -help}\n";
+    std::cout << "    -version                 Display the version information.\n";
+    std::cout << "    -help                    Show this help message.\n";
 }
 
 void version(void) {
-    std::cout
-    << "GROB v"
-    << (unsigned)__BUILD_NUMBER / 100000 << "."
-    << (unsigned)__BUILD_NUMBER / 10000 % 10 << "."
-    << (unsigned)__BUILD_NUMBER / 1000 % 10 << "."
-    << std::setfill('0') << std::setw(3) << (unsigned)__BUILD_NUMBER % 1000
-    << "\n";
+    std::cout << "Copyright (C) 2024 Insoft. All rights reserved.\n";
+    std::cout << "Insoft GROB version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << "." << BUILD_NUMBER / 1000 % 10
+    << " (BUILD " << getBuildCode() << ")\n";
+    std::cout << "Built on: " << CURRENT_DATE << "\n";
+    std::cout << "Licence: MIT License\n\n";
+    std::cout << "For more information, visit: http://www.insoft.uk\n";
+}
+
+void error(void)
+{
+    std::cout << "grob: try 'pplref -help' for more information\n";
+    exit(0);
 }
 
 void info(void) {
-    std::cout << "Copyright (c) 2023 Insoft. All rights reserved\n";
-    std::cout << "GROB v" << (unsigned)__BUILD_NUMBER / 100000 << "." << (unsigned)__BUILD_NUMBER / 10000 % 10 << "\n\n";
+    std::cout << "Copyright (c) 2024 Insoft. All rights reserved.\n";
+    int rev = BUILD_NUMBER / 1000 % 10;
+    std::cout << "Insoft PPL Reformat version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << (rev ? "." + std::to_string(rev) : "")
+    << " (BUILD " << getBuildCode() << "-" << decimalToBase24(BUILD_DATE) << ")\n\n";
 }
 
-void usage(void)
-{
-    info();
-    std::cout << "usage: grob in-file [-o out-file] [-n --name] [-g --grob]\n\n";
-    std::cout << " -o, --out-file    file\n";
-    std::cout << " -n, --name        custom name\n";
-    std::cout << " -g, --grob        graphic object 1-9 to use if file is an image\n";
-    std::cout << " -p, --p+          wrap ppl code between #PPL...#end for p+\n";
-    std::cout << " -h, --help        show help.\n";
-    std::cout << " --version         displays the full version number.\n";
-}
 
 void saveAs(std::string& filename, const std::string& str) {
     std::ofstream outfile;
@@ -259,25 +314,26 @@ int main(int argc, const char * argv[]) {
             continue;
         }
         
-        if ( strcmp( argv[n], "--help" ) == 0 ) {
-            usage();
-            exit(0x65);
+        if ( strcmp( argv[n], "-help" ) == 0 ) {
+            help();
+            exit(0);
         }
         
-        if ( strcmp( argv[n], "--version" ) == 0 ) {
+        if ( strcmp( argv[n], "-version" ) == 0 ) {
             version();
+            exit(0);
             return 0;
         }
         
-        if ( strcmp( argv[n], "-p" ) == 0 || strcmp( argv[n], "--p+" ) == 0 ) {
+        if ( strcmp( argv[n], "-p+" ) == 0 ) {
             pplus = true;
             continue;
         }
         
-        if ( strcmp( argv[n], "-g" ) == 0 || strcmp( argv[n], "--grob" ) == 0 ) {
+        if ( strcmp( argv[n], "-g" ) == 0 ) {
             if ( n + 1 >= argc ) {
-                error();
-                exit(0x66);
+                info();
+                exit(0);
             }
             
             n++;
@@ -286,7 +342,7 @@ int main(int argc, const char * argv[]) {
             continue;
         }
         
-        if ( strcmp( argv[n], "-n" ) == 0 || strcmp( argv[n], "--name" ) == 0 )
+        if ( strcmp( argv[n], "-n" ) == 0 )
         {
             if ( n + 1 >= argc ) {
                 error();

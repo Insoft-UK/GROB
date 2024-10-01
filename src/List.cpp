@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <fstream>
 #include <regex>
+#include <cstdint>
 
 static int _col = 8;
 

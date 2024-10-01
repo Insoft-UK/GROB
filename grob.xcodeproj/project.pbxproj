@@ -105,7 +105,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1510;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					13EBE2F22B22249000302F26 = {
 						CreatedOnToolsVersion = 14.3.1;
@@ -133,6 +133,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		1352EC5E2B40B849003130E4 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -146,7 +147,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Increment version number by 0.001, allowing 1000 builds before version number is increased.\nbuild=( $(cat src/build.txt) )\nbuild=$(($build+1))\necho $build > src/build.txt\necho \"unsigned __BUILD_NUMBER=$build;\" > src/build.h\n";
+			shellScript = "# Increment version number by 0.001, allowing 1000 builds before version number is increased.\nbuild=( $(cat src/build.txt) )\nbuild=$(($build+1))\ncurrent_date=$(date +\"%Y %B %d\")\nbuild_date=$(date +\"%Y%m%d\")\necho $build > src/build.txt\necho \"#define BUILD_NUMBER $build\" > src/build.h\necho \"#define CURRENT_DATE \\\"$current_date\\\"\" >> src/build.h\necho \"#define BUILD_DATE $build_date\" >> src/build.h\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
