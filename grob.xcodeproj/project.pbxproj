@@ -30,7 +30,7 @@
 		1352EDF22B4786BC003130E4 /* build.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.txt; sourceTree = "<group>"; };
 		1352EDF32B4786BC003130E4 /* List.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = List.cpp; sourceTree = "<group>"; };
 		1352EDF42B4786BC003130E4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		138F54D42C977703009357F9 /* LICENCE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENCE.txt; sourceTree = "<group>"; };
+		138F54D42C977703009357F9 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		138F54D52C977708009357F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		13EBE2F32B22249100302F26 /* grob */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = grob; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -61,7 +61,7 @@
 		137FB27C2A03B06500AEFDF2 = {
 			isa = PBXGroup;
 			children = (
-				138F54D42C977703009357F9 /* LICENCE.txt */,
+				138F54D42C977703009357F9 /* LICENSE */,
 				138F54D52C977708009357F9 /* README.md */,
 				13166E872BA1385E00D1E6F0 /* example */,
 				1352EDEC2B4786BC003130E4 /* src */,

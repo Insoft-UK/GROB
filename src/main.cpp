@@ -199,7 +199,7 @@ void help(void)
     std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
     std::cout << "  -n                         Custom name\n";
     std::cout << "  -g                         Graphic object 1-9 to use if file is an image\n";
-    std::cout << "  -p+                        Wrap PPL code between #PPL...#end for P+\n";
+    std::cout << "  -p+                        Wrap PPL code between #PPL...#END for P+\n";
     std::cout << "\n";
     std::cout << "Additional Commands:\n";
     std::cout << "  grob {-version | -help}\n";
