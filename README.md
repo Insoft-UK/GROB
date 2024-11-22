@@ -1,3 +1,5 @@
+<img src="../../../Insoft-UK/blob/main/assets/logo.svg" width="80" height="80" />
+
 # GROB
 A utility for generating PPL code from an image file for use with the BLIT and BLIT_P functions on the HP Prime.
 
