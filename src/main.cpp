@@ -27,12 +27,62 @@
 #include <cstring>
 #include <iomanip>
 #include <cstdint>
-#include "version_code.h"
-#include "List.hpp"
-#include "bmp.hpp"
-#include "ColorTable.hpp"
 
-#define NAME "BLOB"
+#include "version_code.h"
+#include "bmp.hpp"
+
+#define NAME "GROB"
+#define COMMAND_NAME "grob"
+
+// MARK: - Functions
+
+template <typename T>
+T swap_endian(T u)
+{
+    static_assert (CHAR_BIT == 8, "CHAR_BIT != 8");
+
+    union
+    {
+        T u;
+        unsigned char u8[sizeof(T)];
+    } source, dest;
+
+    source.u = u;
+
+    for (size_t k = 0; k < sizeof(T); k++)
+        dest.u8[k] = source.u8[sizeof(T) - k - 1];
+
+    return dest.u;
+}
+
+// A list is limited to 10,000 elements. Attempting to create a longer list will result in error 38 (Insufficient memory) being thrown.
+static std::string ppl(const void *data, const size_t lengthInBytes, const int columns) {
+    std::ostringstream os;
+    uint64_t n;
+    size_t count = 0;
+    size_t length = lengthInBytes;
+    uint64_t *bytes = (uint64_t *)data;
+    
+    while (length >= 8) {
+        n = *bytes++;
+        
+#ifndef __LITTLE_ENDIAN__
+        /*
+         This platform utilizes big-endian, not little-endian. To ensure
+         that data is processed correctly when generating the list, we
+         must convert between big-endian and little-endian.
+         */
+        n = swap_endian<uint64_t>(n);
+#endif
+        os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":64h";
+        
+        if (length - 8 >= 8) os << ",";
+        if (++count % columns == 0) os << '\n';
+        length -= 8;
+    }
+    if (count % columns != 0) os << '\n';
+    return os.str();
+}
 
 static std::ifstream::pos_type filesize(const char* filename)
 {
@@ -69,16 +119,17 @@ void help(void)
     std::cout << "Copyright (C) 2024-" << YEAR << " Insoft. All rights reserved.\n";
     std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n";
     std::cout << "\n";
-    std::cout << "Usage: grob <input-file> [-o <output-file>] [-n <name>] [-g <1…9>] [-ppl] \n";
+    std::cout << "Usage: " << COMMAND_NAME << " <input-file> [-o <output-file>] [-c <columns>] [-n <name>] [-g <1…9>] [-ppl] \n";
     std::cout << "\n";
     std::cout << "Options:\n";
     std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
+    std::cout << "  -c <columns>               Number of columns\n";
     std::cout << "  -n <name>                  Custom name\n";
     std::cout << "  -g <1…9>                   Graphic object 1-9 to use if file is an image\n";
     std::cout << "  -ppl                       Wrap PPL code between #PPL...#END\n";
     std::cout << "\n";
     std::cout << "Additional Commands:\n";
-    std::cout << "  grob {--version | --help}\n";
+    std::cout << "  " << COMMAND_NAME << " {--version | --help}\n";
     std::cout << "    --version                Display the version information.\n";
     std::cout << "    --help                   Show this help message.\n";
 }
@@ -93,7 +144,7 @@ void version(void) {
 
 void error(void)
 {
-    std::cout << "grob: try 'grob -help' for more information\n";
+    std::cout << COMMAND_NAME << ": try '" << COMMAND_NAME << " -help' for more information\n";
     exit(0);
 }
 
@@ -161,8 +212,11 @@ void saveAs(std::string& filename, const std::string& str) {
 }
 
 
+// MARK: - Main
+
 int main(int argc, const char * argv[]) {
     std::string ifilename, ofilename, prefix, sufix, name;
+    int columns = 8;
     int grob = 1;
     bool pplus = false;
 
@@ -211,6 +265,18 @@ int main(int argc, const char * argv[]) {
             
             n++;
             grob = atoi(argv[n]);
+        
+            continue;
+        }
+        
+        if ( strcmp( argv[n], "-c" ) == 0 ) {
+            if ( n + 1 >= argc ) {
+                info();
+                exit(0);
+            }
+            
+            n++;
+            columns = atoi(argv[n]);
         
             continue;
         }
@@ -277,11 +343,10 @@ int main(int argc, const char * argv[]) {
     
     switch (bitmap.bitWidth) {
         case 0:
-            utf8 += "LOCAL " + name + ":={" + List::ppl(bitmap.data, lengthInBytes, List::Format::Binary, 8) + "};\n";
+            utf8 += "LOCAL " + name + ":={" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
             break;
             
         case 4:
-            
             utf8 += "LOCAL " + name + ":={\n";
             utf8 += "4," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height);
             utf8 += "," + std::to_string(bitmap.palette.size()) + ",\n";
@@ -291,16 +356,12 @@ int main(int argc, const char * argv[]) {
                 os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << color << ":32h,";
             }
             utf8 += os.str();
-            utf8 += "\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::Binary, 8) + "};\n";
+            utf8 += "\n" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
             break;
-            
-            
-        case 16:
-            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::HighColor, 8) + "});\n";
-            break;
+        
             
         default:
-            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::TrueColor, 8) + "});\n";
+            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + ppl(bitmap.data, lengthInBytes, columns) + "});\n";
             break;
     }
     if (pplus) utf8.append("#END\n");

@@ -65,15 +65,19 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-p+"
+            argument = "-ppl"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-version"
+            argument = "-n MAD -c 16"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--version"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-help"
+            argument = "--help"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
