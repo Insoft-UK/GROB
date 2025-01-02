@@ -4,4 +4,4 @@
 A utility for generating PPL code from an image file for use with the BLIT and BLIT_P functions on the HP Prime.
 
 > [!NOTE]
-The only image file format currently supported by this utility tool is the Bitmap (BMP) format, with 16-bit, 24-bit, or 32-bit color depth.
+The only image file format currently supported by this utility tool is the Bitmap (BMP) format, with 4-bit, 8-bit, 16-bit, or 32-bit color depth.
