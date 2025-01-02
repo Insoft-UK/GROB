@@ -33,6 +33,8 @@ public:
     enum class Format {
         HighColor,
         TrueColor,
+        Index16,
+        Index256,
         Binary
     };
     

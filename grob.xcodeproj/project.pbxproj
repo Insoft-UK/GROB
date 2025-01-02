@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1352EDF52B4786BD003130E4 /* List.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1352EDF32B4786BC003130E4 /* List.cpp */; };
 		1352EDF62B4786BD003130E4 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1352EDF42B4786BC003130E4 /* main.cpp */; };
+		136E64402D25AF090054E0CC /* bmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 136E643F2D25AF090054E0CC /* bmp.cpp */; };
+		136E64432D25BAFF0054E0CC /* ColorTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 136E64422D25BAFF0054E0CC /* ColorTable.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,11 +27,15 @@
 
 /* Begin PBXFileReference section */
 		13166E872BA1385E00D1E6F0 /* example */ = {isa = PBXFileReference; lastKnownFileType = folder; path = example; sourceTree = "<group>"; };
-		1352EDEE2B4786BC003130E4 /* build.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = build.h; sourceTree = "<group>"; };
 		1352EDF12B4786BC003130E4 /* List.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = List.hpp; sourceTree = "<group>"; };
-		1352EDF22B4786BC003130E4 /* build.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = build.txt; sourceTree = "<group>"; };
 		1352EDF32B4786BC003130E4 /* List.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = List.cpp; sourceTree = "<group>"; };
 		1352EDF42B4786BC003130E4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		136E643E2D25AF090054E0CC /* bmp.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = bmp.hpp; sourceTree = "<group>"; };
+		136E643F2D25AF090054E0CC /* bmp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bmp.cpp; sourceTree = "<group>"; };
+		136E64412D25BAFF0054E0CC /* ColorTable.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ColorTable.hpp; sourceTree = "<group>"; };
+		136E64422D25BAFF0054E0CC /* ColorTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ColorTable.cpp; sourceTree = "<group>"; };
+		136E64442D262CE90054E0CC /* version.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = version.txt; sourceTree = "<group>"; };
+		136E64462D2633380054E0CC /* version_code.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = version_code.h; sourceTree = "<group>"; };
 		138F54D42C977703009357F9 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		138F54D52C977708009357F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		13EBE2F32B22249100302F26 /* grob */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = grob; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,11 +55,14 @@
 		1352EDEC2B4786BC003130E4 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				136E64462D2633380054E0CC /* version_code.h */,
 				1352EDF42B4786BC003130E4 /* main.cpp */,
-				1352EDF22B4786BC003130E4 /* build.txt */,
-				1352EDEE2B4786BC003130E4 /* build.h */,
+				136E64412D25BAFF0054E0CC /* ColorTable.hpp */,
+				136E64422D25BAFF0054E0CC /* ColorTable.cpp */,
 				1352EDF12B4786BC003130E4 /* List.hpp */,
 				1352EDF32B4786BC003130E4 /* List.cpp */,
+				136E643E2D25AF090054E0CC /* bmp.hpp */,
+				136E643F2D25AF090054E0CC /* bmp.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -61,6 +70,7 @@
 		137FB27C2A03B06500AEFDF2 = {
 			isa = PBXGroup;
 			children = (
+				136E64442D262CE90054E0CC /* version.txt */,
 				138F54D42C977703009357F9 /* LICENSE */,
 				138F54D52C977708009357F9 /* README.md */,
 				13166E872BA1385E00D1E6F0 /* example */,
@@ -147,7 +157,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Increment version number by 0.001, allowing 1000 builds before version number is increased.\nbuild=( $(cat src/build.txt) )\nbuild=$(($build+1))\ncurrent_date=$(date +\"%Y %B %d\")\nbuild_date=$(date +\"%Y%m%d\")\necho $build > src/build.txt\necho \"#define BUILD_NUMBER $build\" > src/build.h\necho \"#define CURRENT_DATE \\\"$current_date\\\"\" >> src/build.h\necho \"#define BUILD_DATE $build_date\" >> src/build.h\n";
+			shellScript = "./version_code\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -156,7 +166,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				136E64402D25AF090054E0CC /* bmp.cpp in Sources */,
 				1352EDF62B4786BD003130E4 /* main.cpp in Sources */,
+				136E64432D25BAFF0054E0CC /* ColorTable.cpp in Sources */,
 				1352EDF52B4786BD003130E4 /* List.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

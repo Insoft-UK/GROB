@@ -54,6 +54,10 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "$(PROJECT_DIR)/example/example.bmp"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "$(PROJECT_DIR)/example/example16.bmp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

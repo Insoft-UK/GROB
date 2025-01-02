@@ -52,15 +52,13 @@ T swap_endian(T u)
     return dest.u;
 }
 
-static std::string listHighColor(const void *data, const size_t lengthInBytes)
+static std::string listColors(const void *data, const size_t lengthInBytes)
 {
     std::ostringstream os;
     uint64_t n;
     size_t count = 0;
     size_t length = lengthInBytes;
     uint64_t *bytes = (uint64_t *)data;
-    
-    os << "{\n";
     while (length >= 8) {
         n = *bytes++;
         
@@ -79,40 +77,9 @@ static std::string listHighColor(const void *data, const size_t lengthInBytes)
         length-=8;
     }
     if (count % _col != 0) os << '\n';
-    os << "}";
     return os.str();
 }
 
-static std::string listTrueColor(const void *data, const size_t lengthInBytes)
-{
-    std::ostringstream os;
-    uint64_t n;
-    size_t count = 0;
-    size_t length = lengthInBytes / 8;
-    uint64_t *bytes = (uint64_t *)data;
-    
-    os << "{\n";
-    while (length >= 8) {
-        n = *bytes++;
-        
-#ifndef __LITTLE_ENDIAN__
-        /*
-         This platform utilizes big-endian, not little-endian. To ensure
-         that data is processed correctly when generating the list, we
-         must convert between big-endian and little-endian.
-         */
-        n = swap_endian<uint64_t>(n);
-#endif
-        os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":32h";
-    
-        if (length - 8 > 8) os << ",";
-        if (++count % _col == 0) os << '\n';
-        length-=8;
-    }
-    if (count % _col != 0) os << '\n';
-    os << "}";
-    return os.str();
-}
 
 std::string list64(const void *data, const size_t lengthInBytes)
 {
@@ -122,7 +89,6 @@ std::string list64(const void *data, const size_t lengthInBytes)
     size_t length = lengthInBytes;
     uint64_t *bytes = (uint64_t *)data;
     
-    os << "{\n";
     
     while (length >= 8) {
         n = *bytes++;
@@ -142,7 +108,6 @@ std::string list64(const void *data, const size_t lengthInBytes)
         length-=8;
     }
     if (count % _col != 0) os << '\n';
-    os << "}";
     return os.str();
 }
 
@@ -151,10 +116,8 @@ std::string List::ppl(const void *data, const size_t lengthInBytes, Format fmt, 
     _col = col;
     switch (fmt) {
         case Format::HighColor:
-            return listHighColor(data, lengthInBytes);
-            
         case Format::TrueColor:
-            return listTrueColor(data, lengthInBytes);
+            return listColors(data, lengthInBytes);
             
         default:
             return list64(data, lengthInBytes);

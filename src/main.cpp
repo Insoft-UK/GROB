@@ -1,26 +1,24 @@
-/*
- The MIT License (MIT)
- 
- Copyright (c) 2024 Insoft. All rights reserved.
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
- */
+// The MIT License (MIT)
+// 
+// Copyright (c) 2024 Insoft. All rights reserved.
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include <iostream>
 #include <fstream>
@@ -29,91 +27,12 @@
 #include <cstring>
 #include <iomanip>
 #include <cstdint>
-#include "build.h"
+#include "version_code.h"
 #include "List.hpp"
+#include "bmp.hpp"
+#include "ColorTable.hpp"
 
-static const char* BMP_MAGIC = "BM";
-
-//#define __attribute__(x)
-
-//#pragma pack(push, 1)     /* set alignment to 1 byte boundary */
-/* Windows 3.x bitmap file header */
-typedef struct __attribute__((__packed__)){
-    char      fileType[2];   /* magic - always 'B' 'M' */
-    uint32_t    fileSize;
-    int32_t    tableOffsett;  /* offset in bytes to actual bitmap table */
-    uint32_t    dataOffset;    /* offset in bytes to actual bitmap data */
-} BMPHeader;
-
-/* Windows 3.x bitmap full header, including file header */
-
-typedef struct __attribute__((__packed__)){
-    BMPHeader fileHeader;
-    uint32_t    biSize;
-    int32_t    biWidth;
-    int32_t    biHeight;
-    int16_t    biPlanes;           // Number of colour planes, set to 1
-    int16_t    biBitCount;         // Colour bits per pixel. 1 4 8 16 24 or 32
-    uint32_t    biCompression;      // *Code for the compression scheme
-    uint32_t    biSizeImage;        // *Size of the bitmap bits in bytes
-    int32_t    biXPelsPerMeter;    // *Horizontal resolution in pixels per meter
-    int32_t    biYPelsPerMeter;    // *Vertical resolution in pixels per meter
-    uint32_t    biClrUsed;          // *Number of colours defined in the palette
-    uint32_t    biClImportant;      // *Number of important colours in the image
-} BIPHeader;
-//#pragma pack(pop)
-
-struct Data {
-    List::Format fmt;
-    unsigned width, height;
-    
-    void *bytes;
-    unsigned long length;
-};
-
-
-void loadBMP(const char* filename, Data& data) {
-    BIPHeader bip_header;
-    std::ifstream infile;
-    infile.open(filename, std::ios::in | std::ios::binary);
-    
-    infile.read((char *)&bip_header, sizeof(BIPHeader));
-
-    // Check the file type is a BMP
-    if (strncmp(bip_header.fileHeader.fileType, BMP_MAGIC, 2) != 0) {
-        infile.close();
-        return;
-    }
-
-    data.width = bip_header.biWidth;
-    data.height = abs(bip_header.biHeight);
-
-    if (16 == bip_header.biBitCount) data.fmt = List::Format::HighColor;
-    if (32 == bip_header.biBitCount) {
-        data.fmt = List::Format::TrueColor;
-    }
-    if (24 == bip_header.biBitCount) {
-        data.fmt = List::Format::TrueColor;
-    }
-
-
-    infile.seekg(bip_header.fileHeader.dataOffset, std::ios::beg);
-    data.bytes = malloc(bip_header.biSizeImage);
-    if (!data.bytes) return;
-    data.length = bip_header.biSizeImage;
-    infile.read((char *)data.bytes, data.length);
-
-    if (bip_header.biHeight > 0) {
-        size_t bytesPerLine = bip_header.biSizeImage / abs(bip_header.biHeight);
-        void *buf = malloc(bytesPerLine);
-        if (!buf) return;
-        for (int n=abs(bip_header.biHeight); n; --n) {
-
-        }
-    }
-    
-    infile.close();
-}
+#define NAME "BLOB"
 
 static std::ifstream::pos_type filesize(const char* filename)
 {
@@ -123,110 +42,64 @@ static std::ifstream::pos_type filesize(const char* filename)
     return pos;
 }
 
-static void loadBinaryFile(const char* filename, Data &data) {
+static size_t loadBinaryFile(const char* filename, TBitmap& bitmap) {
     size_t fsize;
     std::ifstream infile;
     
-    if ((fsize = filesize(filename)) == 0) return;
+    if ((fsize = filesize(filename)) == 0) return 0;
     
     infile.open(filename, std::ios::in | std::ios::binary);
     
-    if (!infile.is_open()) return;
+    if (!infile.is_open()) return 0;
 
-    if (!(data.bytes = malloc(fsize))) return;
-    data.length = fsize;
-    infile.read((char *)data.bytes, fsize);
-    data.fmt = List::Format::Binary;
+    if (!(bitmap.data = malloc(fsize))) return 0;
+    infile.read((char *)bitmap.data, fsize);
+    bitmap.bitWidth = 0;
     
     infile.close();
+    return fsize;
 }
 
 
 // MARK: - Command Line
 
-/*
- The decimalToBase24 function converts a given
- base 10 integer into its base 24 representation using a
- specific set of characters. The character set is
- comprised of the following 24 symbols:
-
-     •    Numbers: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-     •    Letters: C, D, F, H, J, K, M, N, R, U, V, W, X, Y
-     
- Character Selection:
- The choice of characters was made to avoid confusion
- with common alphanumeric representations, ensuring
- that each character is visually distinct and easily
- recognizable. This set excludes characters that closely
- resemble each other or numerical digits, promoting
- clarity in representation.
- */
-static std::string decimalToBase24(int num) {
-    if (num == 0) {
-        return "C";
-    }
-
-    const std::string base24Chars = "0123456789CDFHJKMNRUVWXY";
-    std::string base24;
-
-    while (num > 0) {
-        int remainder = num % 24;
-        base24 = base24Chars[remainder] + base24; // Prepend character
-        num /= 24; // Integer division
-    }
-
-    return base24;
-}
-
-static std::string getBuildCode(void) {
-    std::string str;
-    int majorVersionNumber = BUILD_NUMBER / 100000;
-    str = std::to_string(majorVersionNumber) + decimalToBase24(BUILD_NUMBER - majorVersionNumber * 100000);
-    return str;
-}
 
 void help(void)
 {
-    int rev = BUILD_NUMBER / 1000 % 10;
-    
-    std::cout << "Copyright (C) 2024 Insoft. All rights reserved.\n";
-    std::cout << "Insoft GROB version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << (rev ? "." + std::to_string(rev) : "")
-    << " (BUILD " << getBuildCode() << "-" << decimalToBase24(BUILD_DATE) << ")\n";
+    std::cout << "Copyright (C) 2024-" << YEAR << " Insoft. All rights reserved.\n";
+    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n";
     std::cout << "\n";
-    std::cout << "Usage: grob <input-file> [-o <output-file>] [-n] [-g] \n";
+    std::cout << "Usage: grob <input-file> [-o <output-file>] [-n <name>] [-g <1…9>] [-ppl] \n";
     std::cout << "\n";
     std::cout << "Options:\n";
     std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
-    std::cout << "  -n                         Custom name\n";
-    std::cout << "  -g                         Graphic object 1-9 to use if file is an image\n";
-    std::cout << "  -p+                        Wrap PPL code between #PPL...#END for P+\n";
+    std::cout << "  -n <name>                  Custom name\n";
+    std::cout << "  -g <1…9>                   Graphic object 1-9 to use if file is an image\n";
+    std::cout << "  -ppl                       Wrap PPL code between #PPL...#END\n";
     std::cout << "\n";
     std::cout << "Additional Commands:\n";
-    std::cout << "  grob {-version | -help}\n";
-    std::cout << "    -version                 Display the version information.\n";
-    std::cout << "    -help                    Show this help message.\n";
+    std::cout << "  grob {--version | --help}\n";
+    std::cout << "    --version                Display the version information.\n";
+    std::cout << "    --help                   Show this help message.\n";
 }
 
 void version(void) {
     std::cout << "Copyright (C) 2024 Insoft. All rights reserved.\n";
-    std::cout << "Insoft GROB version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << "." << BUILD_NUMBER / 1000 % 10
-    << " (BUILD " << getBuildCode() << ")\n";
-    std::cout << "Built on: " << CURRENT_DATE << "\n";
+    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n";
+    std::cout << "Built on: " << DATE << "\n";
     std::cout << "Licence: MIT License\n\n";
     std::cout << "For more information, visit: http://www.insoft.uk\n";
 }
 
 void error(void)
 {
-    std::cout << "grob: try 'pplref -help' for more information\n";
+    std::cout << "grob: try 'grob -help' for more information\n";
     exit(0);
 }
 
 void info(void) {
     std::cout << "Copyright (c) 2024 Insoft. All rights reserved.\n";
-    int rev = BUILD_NUMBER / 1000 % 10;
-    std::cout << "Insoft PPL Reformat version, " << BUILD_NUMBER / 100000 << "." << BUILD_NUMBER / 10000 % 10 << (rev ? "." + std::to_string(rev) : "")
-    << " (BUILD " << getBuildCode() << "-" << decimalToBase24(BUILD_DATE) << ")\n\n";
+    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n\n";
 }
 
 
@@ -314,18 +187,18 @@ int main(int argc, const char * argv[]) {
             continue;
         }
         
-        if ( strcmp( argv[n], "-help" ) == 0 ) {
+        if ( strcmp( argv[n], "--help" ) == 0 ) {
             help();
             exit(0);
         }
         
-        if ( strcmp( argv[n], "-version" ) == 0 ) {
+        if ( strcmp( argv[n], "--version" ) == 0 ) {
             version();
             exit(0);
             return 0;
         }
         
-        if ( strcmp( argv[n], "-p+" ) == 0 ) {
+        if ( strcmp( argv[n], "-ppl" ) == 0 ) {
             pplus = true;
             continue;
         }
@@ -359,6 +232,8 @@ int main(int argc, const char * argv[]) {
         if (ifilename.empty()) ifilename = argv[n];
     }
     
+    info();
+    
     if (ofilename.empty()) {
         std::smatch m;
         if (regex_search(ifilename, m, std::regex(R"(\w*(\.\w+)?$)"))) {
@@ -370,52 +245,72 @@ int main(int argc, const char * argv[]) {
         ofilename += ".hpprgm";
     }
     
-    Data data = {
-        .fmt = List::Format::Binary,
-        .width = 0,
-        .height = 0,
-        .bytes = 0,
-        .length = 0
-    };
-    
     
     if (!filesize(ifilename.c_str())) {
         std::cout << "file '" << ifilename << "' not found.\n";
         exit(0x01);
     }
-
-    loadBMP(ifilename.c_str(), data);
-    if (!data.length) {
-        loadBinaryFile(ifilename.c_str(), data);
+    
+    if (name.empty()) {
+        std::smatch match;
+        regex_search(ofilename, match, std::regex(R"(^.*[\/\\](.*)\.(.*)$)"));
+        name = match[1].str();
     }
+    
+    size_t lengthInBytes = 0;
+    TBitmap bitmap{};
+    bitmap = loadBitmapImage(ifilename);
+    if (!bitmap.data) {
+        lengthInBytes = loadBinaryFile(ifilename.c_str(), bitmap);
+    } else {
+        lengthInBytes = bitmap.width / (8 / bitmap.bitWidth) * bitmap.height;
+        if (bitmap.bitWidth == 32) lengthInBytes = bitmap.width * bitmap.height * sizeof(uint32_t);
+        if (bitmap.bitWidth == 16) lengthInBytes = bitmap.width * bitmap.height * sizeof(uint16_t);
+    }
+
     
     
     std::string utf8;
+    std::ostringstream os;
+    if (pplus) utf8.append("#PPL\n");
     
-
     
-    if (data.fmt == List::Format::TrueColor || data.fmt == List::Format::HighColor) {
-        std::ostringstream os;
-        if (pplus) os << "#PPL\n";
-        os << "DIMGROB_P(G1," << data.width << "," << data.height << "," << List::ppl(data.bytes, data.length, data.fmt, data.width / (List::Format::HighColor == data.fmt ? 4 : 2)) << ");\n";
-        if (pplus) os << "#END\n";
-        utf8 = os.str();
-    } else {
-        if (name.empty()) {
-            std::string s = ifilename;
-            if (std::string::npos != s.rfind('/')) s = s.substr(s.rfind('/') + 1, s.length() - s.rfind('/') - 1);
-            name = regex_replace(s, std::regex(R"(\.\w+)"), "");
-        }
-        if (pplus)
-            utf8 = "#PPL\nLOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n#END\n";
-        else
-            utf8 = "LOCAL " + name + ":=" + List::ppl(data.bytes, data.length, data.fmt, 8) + ";\n";
-        
+    switch (bitmap.bitWidth) {
+        case 0:
+            utf8 += "LOCAL " + name + ":={" + List::ppl(bitmap.data, lengthInBytes, List::Format::Binary, 8) + "};\n";
+            break;
+            
+        case 4:
+            
+            utf8 += "LOCAL " + name + ":={\n";
+            utf8 += "4," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height);
+            utf8 += "," + std::to_string(bitmap.palette.size()) + ",\n";
+            for (int i = 0; i < bitmap.palette.size(); i += 1) {
+                uint32_t color = bitmap.palette.at(i);
+                color = color >> 8 | (255 - (color & 255)) << 24;
+                os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << color << ":32h,";
+            }
+            utf8 += os.str();
+            utf8 += "\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::Binary, 8) + "};\n";
+            break;
+            
+            
+        case 16:
+            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::HighColor, 8) + "});\n";
+            break;
+            
+        default:
+            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + List::ppl(bitmap.data, lengthInBytes, List::Format::TrueColor, 8) + "});\n";
+            break;
     }
+    if (pplus) utf8.append("#END\n");
     
-    free(data.bytes);
+    
+    releaseBitmap(bitmap);
     
    
     saveAs(ofilename, utf8);
+    
+    
     return 0;
 }
