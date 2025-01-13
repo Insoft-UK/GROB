@@ -145,8 +145,7 @@ void version(void) {
     std::cout << "For more information, visit: http://www.insoft.uk\n";
 }
 
-void error(void)
-{
+void error(void) {
     std::cout << COMMAND_NAME << ": try '" << COMMAND_NAME << " --help' for more information\n";
     exit(0);
 }
