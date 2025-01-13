@@ -57,7 +57,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/example16.bmp"
+            argument = "$(PROJECT_DIR)/example/spectrum-4bit.bmp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -66,10 +66,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-ppl"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-n MAD -c 16"
+            argument = "-n insoft -c 16"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

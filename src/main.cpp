@@ -74,7 +74,7 @@ static std::string ppl(const void *data, const size_t lengthInBytes, const int c
          */
         n = swap_endian<uint64_t>(n);
 #endif
-        os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":64h";
+        os << "  #" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":64h";
         
         if (length - 8 >= 8) os << ",";
         if (++count % columns == 0) os << '\n';
@@ -144,7 +144,7 @@ void version(void) {
 
 void error(void)
 {
-    std::cout << COMMAND_NAME << ": try '" << COMMAND_NAME << " -help' for more information\n";
+    std::cout << COMMAND_NAME << ": try '" << COMMAND_NAME << " --help' for more information\n";
     exit(0);
 }
 
@@ -329,15 +329,38 @@ int main(int argc, const char * argv[]) {
     if (!bitmap.data) {
         lengthInBytes = loadBinaryFile(ifilename.c_str(), bitmap);
     } else {
-        lengthInBytes = bitmap.width / (8 / bitmap.bitWidth) * bitmap.height;
-        if (bitmap.bitWidth == 32) lengthInBytes = bitmap.width * bitmap.height * sizeof(uint32_t);
-        if (bitmap.bitWidth == 16) lengthInBytes = bitmap.width * bitmap.height * sizeof(uint16_t);
+        switch (bitmap.bitWidth) {
+            case 4:
+                lengthInBytes = bitmap.width * bitmap.height / 2;
+                columns = bitmap.width / 16;
+                break;
+                
+            case 8:
+                lengthInBytes = bitmap.width * bitmap.height;
+                columns = bitmap.width / 8;
+                break;
+                
+            case 16:
+                lengthInBytes = bitmap.width * bitmap.height * 2;
+                break;
+                
+            case 32:
+                lengthInBytes = bitmap.width * bitmap.height * 4;
+                break;
+                
+            default:
+                releaseBitmap(bitmap);
+                return -1;
+                break;
+        }
     }
 
+    if (columns < 1) columns = 1;
     
     
     std::string utf8;
     std::ostringstream os;
+    utf8.append("#pragma mode( separator(.,;) integer(h64) )\n\n");
     if (pplus) utf8.append("#PPL\n");
     
     
@@ -347,16 +370,32 @@ int main(int argc, const char * argv[]) {
             break;
             
         case 4:
-            utf8 += "LOCAL " + name + ":={\n";
-            utf8 += "4," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height);
-            utf8 += "," + std::to_string(bitmap.palette.size()) + ",\n";
+        case 8:
+            os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
+            os << "BEGIN\n";
+            os << "  LOCAL g := {}, i, j, d;\n\n";
+            os << "  FOR i := 1 TO SIZE(data) DO\n";
+            os << "    LOCAL d:= data[I];\n\n";
+            os << "    FOR j := 1 TO 8 DO\n";
+            os << "      g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
+            os << "      d := BITSR(d, 8);\n";
+            os << "    END;\n";
+            os << "  END;\n\n";
+            os << "  DIMGROB_P(trgtG, w, h, g);\n";
+            os << "END\n\n";
+            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << "\n};\n";
+            os << "CONST " << name << "_palt := {\n  ";
+            
             for (int i = 0; i < bitmap.palette.size(); i += 1) {
                 uint32_t color = bitmap.palette.at(i);
                 color = color >> 8 | (255 - (color & 255)) << 24;
-                os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << color << ":32h,";
+                if (i) os << ", ";
+                os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(6) << color << ":64h";
             }
-            utf8 += os.str();
-            utf8 += "\n" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
+            os << "\n};\n";
+            
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "};\n";
+            utf8.append(os.str());
             break;
         
             
@@ -366,10 +405,7 @@ int main(int argc, const char * argv[]) {
     }
     if (pplus) utf8.append("#END\n");
     
-    
     releaseBitmap(bitmap);
-    
-   
     saveAs(ofilename, utf8);
     
     
