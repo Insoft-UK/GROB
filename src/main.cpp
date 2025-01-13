@@ -74,13 +74,16 @@ static std::string ppl(const void *data, const size_t lengthInBytes, const int c
          */
         n = swap_endian<uint64_t>(n);
 #endif
-        os << "  #" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":64h";
+
+        if (count) os << ", ";
+        if (count % columns == 0) {
+            os << (count ? "\n  " : "  ");
+        }
+        os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << n << ":64h";
         
-        if (length - 8 >= 8) os << ",";
-        if (++count % columns == 0) os << '\n';
+        count += 1;
         length -= 8;
     }
-    if (count % columns != 0) os << '\n';
     return os.str();
 }
 
@@ -371,48 +374,47 @@ int main(int argc, const char * argv[]) {
             
         case 4:
         case 8:
-            os << "EXPORT GROB_P(trgtG, w, h, data, palt, bpp)\n";
+            os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
             os << "BEGIN\n";
             os << "  LOCAL g := {}, i, j, d, bpp := 0;\n\n";
-            os << "  IF w * h / 16 THEN bpp := 4; END;\n";
-            os << "  IF w * h / 8 THEN bpp := 8; END;\n\n";
-            os << "  IF bpp == 0; THEN RETURN; END;\n";
+            os << "  IF w * h / 16 == SIZE(data) THEN bpp := 4; END;\n";
+            os << "  IF w * h / 8 == SIZE(data) THEN bpp := 8; END;\n\n";
+            os << "  IF bpp == 0 THEN RETURN; END;\n\n";
+            os << "  LOCAL m = 2 ^ bpp - 1;\n";
+            os << "  LOCAL s = bpp / 4;\n\n";
             os << "  FOR i := 1 TO SIZE(data) DO\n";
-            os << "    LOCAL d:= data[I];\n\n";
-            os << "    FOR j := 1 TO 8 DO\n";
-            os << "      CASE\n";
-            os << "        IF bpp == 4 THEN\n";
-            os << "          g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
-            os << "        END\n\n";
-            os << "        IF bpp == 8 THEN\n";
-            os << "          g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
-            os << "          d := BITSR(d, 8);\n";
-            os << "          j +";
-            os << "        END\n";
-            os << "      END\n\n";
-            os << "      d := BITSR(d, 8);\n";
-            os << "    END;\n";
+            os << "    LOCAL d := data[I];\n\n";
+            os << "    FOR j := 1 TO 8 STEP s DO\n";
+            os << "      g[SIZE(L) + 1] := BITOR(palt[BITAND(BITSR(d, bpp), m) + 1], BITSL(palt[BITAND(d, m) + 1], 32));\n";
+            os << "      d := BITSR(d, bpp * 2);\n";
+            os << "   END;\n";
             os << "  END;\n\n";
             os << "  DIMGROB_P(trgtG, w, h, g);\n";
-            os << "END\n\n";
-            os << "CONST " << name << "_info := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n";
+            os << "END;\n\n";
+            os << "// { width, height }\n";
+            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n\n";
             os << "CONST " << name << "_palt := {\n  ";
             
             for (int i = 0; i < bitmap.palette.size(); i += 1) {
                 uint32_t color = bitmap.palette.at(i);
                 color = color >> 8 | (255 - (color & 255)) << 24;
                 if (i) os << ", ";
+                if (i % 16 == 0 && i) os << "\n";
                 os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(6) << color << ":64h";
             }
-            os << "\n};\n";
+            os << "\n};\n\n";
             
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "};\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "\n};\n";
             utf8.append(os.str());
             break;
         
             
         default:
-            utf8 += "DIMGROB_P(G" + std::to_string(grob) + "," + std::to_string(bitmap.width) + "," + std::to_string(bitmap.height) + ",{\n" + ppl(bitmap.data, lengthInBytes, columns) + "});\n";
+            os << "// { width, height }\n";
+            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "\n};\n\n";
+            os << "DIMGROB_P(G" << grob << ", " << name << "_size[1], " << name << "_size[2], " << name << "_data);\n";
+            utf8.append(os.str());
             break;
     }
     if (pplus) utf8.append("#END\n");
