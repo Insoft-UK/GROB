@@ -104,7 +104,7 @@ static size_t loadBinaryFile(const char* filename, TBitmap& bitmap) {
 
     if (!(bitmap.data = malloc(fsize))) return 0;
     infile.read((char *)bitmap.data, fsize);
-    bitmap.bitWidth = 0;
+    bitmap.bpp = 0;
     
     infile.close();
     return fsize;
@@ -329,7 +329,7 @@ int main(int argc, const char * argv[]) {
     if (!bitmap.data) {
         lengthInBytes = loadBinaryFile(ifilename.c_str(), bitmap);
     } else {
-        switch (bitmap.bitWidth) {
+        switch (bitmap.bpp) {
             case 4:
                 lengthInBytes = bitmap.width * bitmap.height / 2;
                 columns = bitmap.width / 16;
@@ -364,26 +364,38 @@ int main(int argc, const char * argv[]) {
     if (pplus) utf8.append("#PPL\n");
     
     
-    switch (bitmap.bitWidth) {
+    switch (bitmap.bpp) {
         case 0:
-            utf8 += "LOCAL " + name + ":={" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
+            utf8 += "CONST " + name + ":= {" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
             break;
             
         case 4:
         case 8:
-            os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
+            os << "EXPORT GROB_P(trgtG, w, h, data, palt, bpp)\n";
             os << "BEGIN\n";
-            os << "  LOCAL g := {}, i, j, d;\n\n";
+            os << "  LOCAL g := {}, i, j, d, bpp := 0;\n\n";
+            os << "  IF w * h / 16 THEN bpp := 4; END;\n";
+            os << "  IF w * h / 8 THEN bpp := 8; END;\n\n";
+            os << "  IF bpp == 0; THEN RETURN; END;\n";
             os << "  FOR i := 1 TO SIZE(data) DO\n";
             os << "    LOCAL d:= data[I];\n\n";
             os << "    FOR j := 1 TO 8 DO\n";
-            os << "      g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
+            os << "      CASE\n";
+            os << "        IF bpp == 4 THEN\n";
+            os << "          g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
+            os << "        END\n\n";
+            os << "        IF bpp == 8 THEN\n";
+            os << "          g[SIZE(L) + 1] := BITOR(palt[BITAND(d, 15) + 1], BITSL(palt[BITAND(BITSR(d, 4), 15) + 1], 32));\n";
+            os << "          d := BITSR(d, 8);\n";
+            os << "          j +";
+            os << "        END\n";
+            os << "      END\n\n";
             os << "      d := BITSR(d, 8);\n";
             os << "    END;\n";
             os << "  END;\n\n";
             os << "  DIMGROB_P(trgtG, w, h, g);\n";
             os << "END\n\n";
-            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << "\n};\n";
+            os << "CONST " << name << "_info := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n";
             os << "CONST " << name << "_palt := {\n  ";
             
             for (int i = 0; i < bitmap.palette.size(); i += 1) {

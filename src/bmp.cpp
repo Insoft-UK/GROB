@@ -69,7 +69,7 @@ template <typename T> static T swap_endian(T u) {
 static void flipBitmapImageVertically(const TBitmap& bitmap)
 {
     uint8_t *byte = (uint8_t *)bitmap.data;
-    int w = (int)((float)bitmap.width / (8.0 / (float)bitmap.bitWidth));
+    int w = (int)((float)bitmap.width / (8.0 / (float)bitmap.bpp));
     int h = (int)bitmap.height;
     
     for (int row = 0; row < h / 2; ++row)
@@ -99,7 +99,7 @@ TBitmap loadBitmapImage(const std::string& filename)
         return bitmap;
     }
     
-    bitmap.bitWidth = bip_header.biBitCount;
+    bitmap.bpp = bip_header.biBitCount;
     bitmap.data = (unsigned char *)malloc(bip_header.biSizeImage);
     if (!bitmap.data) {
         infile.close();
