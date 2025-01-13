@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#define VERSION_NUMBER        "1.1.1"
-#define VERSION_CODE          "A1B52-25AC"
-#define NUMERIC_BUILD          11152
-#define INTERNAL_BUILD_CODE   "A1B52"
+#define VERSION_NUMBER        "1.1.2"
+#define VERSION_CODE          "A1C02-25AC"
+#define NUMERIC_BUILD          11202
+#define INTERNAL_BUILD_CODE   "A1C02"
 #define DATE                  "2025 January 13"
 #define YEAR                  "2025"
