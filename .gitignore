@@ -5,4 +5,4 @@ xcuserdata/
 bin/*
 releases
 www
-.www
+*.zip
