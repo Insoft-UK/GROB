@@ -426,15 +426,16 @@ int main(int argc, const char * argv[]) {
             os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
             os << "BEGIN\n";
             os << "  LOCAL g := {}, i, j, d, bpp := 0;\n\n";
+            os << "  IF w * h / 64 == SIZE(data) THEN bpp := 1; END;\n";
             os << "  IF w * h / 16 == SIZE(data) THEN bpp := 4; END;\n";
             os << "  IF w * h / 8 == SIZE(data) THEN bpp := 8; END;\n\n";
             os << "  IF bpp == 0 THEN RETURN; END;\n\n";
             os << "  LOCAL m = 2 ^ bpp - 1;\n";
             os << "  LOCAL s = bpp / 4;\n\n";
             os << "  FOR i := 1 TO SIZE(data) DO\n";
-            os << "    LOCAL d := data[I];\n\n";
+            os << "    LOCAL d := data[i];\n\n";
             os << "    FOR j := 1 TO 8 STEP s DO\n";
-            os << "      BITOR(palt[BITAND(d, m) + 1], BITSL(palt[BITAND(BITSR(d, bpp) m) + 1], 32)) ▶ g[SIZE(g) + 1];\n";
+            os << "      g[SIZE(g) + 1] := BITOR(palt[BITAND(d, m) + 1], BITSL(palt[BITAND(BITSR(d, bpp), m) + 1], 32));\n";
             os << "      d := BITSR(d, bpp * 2);\n";
             os << "   END;\n";
             os << "  END;\n\n";

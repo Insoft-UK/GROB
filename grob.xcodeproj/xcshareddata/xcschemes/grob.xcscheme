@@ -53,8 +53,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/example-32bit.bmp"
-            isEnabled = "NO">
+            argument = "$(PROJECT_DIR)/example/example-1bit.bmp"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-endian be"
@@ -62,7 +62,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "$(PROJECT_DIR)/example/bitmap-1bit.bmp"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "$(PROJECT_DIR)/example/spectrum-4bit.bmp"
