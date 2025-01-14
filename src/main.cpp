@@ -56,7 +56,7 @@ T swap_endian(T u)
 }
 
 // A list is limited to 10,000 elements. Attempting to create a longer list will result in error 38 (Insufficient memory) being thrown.
-static std::string ppl(const void *data, const size_t lengthInBytes, const int columns) {
+static std::string ppl(const void *data, const size_t lengthInBytes, const int columns, bool le = true) {
     std::ostringstream os;
     uint64_t n;
     size_t count = 0;
@@ -66,13 +66,17 @@ static std::string ppl(const void *data, const size_t lengthInBytes, const int c
     while (length >= 8) {
         n = *bytes++;
         
+        if (!le) {
+            n = swap_endian<uint64_t>(n);
+        }
+        
 #ifndef __LITTLE_ENDIAN__
         /*
          This platform utilizes big-endian, not little-endian. To ensure
          that data is processed correctly when generating the list, we
          must convert between big-endian and little-endian.
          */
-        n = swap_endian<uint64_t>(n);
+        if (le) n = swap_endian<uint64_t>(n);
 #endif
 
         if (count) os << ", ";
@@ -126,10 +130,11 @@ void help(void)
     std::cout << "\n";
     std::cout << "Options:\n";
     std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
-    std::cout << "  -c <columns>               Number of columns\n";
-    std::cout << "  -n <name>                  Custom name\n";
-    std::cout << "  -g <1…9>                   Graphic object 1-9 to use if file is an image\n";
+    std::cout << "  -c <columns>               Number of columns.\n";
+    std::cout << "  -n <name>                  Custom name.\n";
+    std::cout << "  -g <1…9>                   Graphic object 1-9 to use if file is an image.\n";
     std::cout << "  -ppl                       Wrap PPL code between #PPL...#END\n";
+    std::cout << "  -endian <le|be>            Endianes le(default).\n";
     std::cout << "\n";
     std::cout << "Additional Commands:\n";
     std::cout << "  " << COMMAND_NAME << " {--version | --help}\n";
@@ -221,6 +226,7 @@ int main(int argc, const char * argv[]) {
     int columns = 8;
     int grob = 1;
     bool pplus = false;
+    bool le = true;
 
     if ( argc == 1 )
     {
@@ -256,6 +262,19 @@ int main(int argc, const char * argv[]) {
         
         if ( strcmp( argv[n], "-ppl" ) == 0 ) {
             pplus = true;
+            continue;
+        }
+        
+        if ( strcmp( argv[n], "-endian" ) == 0 ) {
+            if ( n + 1 >= argc ) {
+                info();
+                exit(0);
+            }
+            
+            n++;
+            if (strcmp( argv[n], "le" ) == 0) le = true;
+            if (strcmp( argv[n], "be" ) == 0) le = false;
+        
             continue;
         }
         
@@ -332,23 +351,44 @@ int main(int argc, const char * argv[]) {
         lengthInBytes = loadBinaryFile(ifilename.c_str(), bitmap);
     } else {
         switch (bitmap.bpp) {
+            case 1:
+                lengthInBytes = bitmap.width * bitmap.height / 8;
+                columns = bitmap.width / 64;
+                bitmap.palette.push_back(0xFF);
+                bitmap.palette.push_back(0xFFFFFFFF);
+                if (bitmap.data) {
+                    uint8_t *bytes = (uint8_t *)bitmap.data;
+                    for (int i = 0; i < lengthInBytes; i += 1) {
+                        // Swap nibbles
+                        bytes[i] = bytes[i] >> 4 | bytes[i] << 4;
+                    }
+                }
+                break;
+                
             case 4:
                 lengthInBytes = bitmap.width * bitmap.height / 2;
                 columns = bitmap.width / 16;
+                if (bitmap.data) {
+                    uint8_t *bytes = (uint8_t *)bitmap.data;
+                    for (int i = 0; i < lengthInBytes; i += 1) {
+                        // Swap nibbles
+                        bytes[i] = bytes[i] >> 4 | bytes[i] << 4;
+                    }
+                }
                 break;
                 
             case 8:
                 lengthInBytes = bitmap.width * bitmap.height;
                 columns = bitmap.width / 8;
-                if (bitmap.data) {
-                    uint8_t *bytes = (uint8_t *)bitmap.data;
-                    for (int i = 0; i < lengthInBytes; i += 2) {
-                        // Swap with XOR
-                        bytes[i] ^= bytes[i + 1];
-                        bytes[i + 1] ^= bytes[i];
-                        bytes[i] ^= bytes[i + 1];
-                    }
-                }
+//                if (bitmap.data) {
+//                    uint8_t *bytes = (uint8_t *)bitmap.data;
+//                    for (int i = 0; i < lengthInBytes; i += 2) {
+//                        // Swap with XOR
+//                        bytes[i] ^= bytes[i + 1];
+//                        bytes[i + 1] ^= bytes[i];
+//                        bytes[i] ^= bytes[i + 1];
+//                    }
+//                }
                 break;
                 
             case 16:
@@ -377,9 +417,10 @@ int main(int argc, const char * argv[]) {
     
     switch (bitmap.bpp) {
         case 0:
-            utf8 += "CONST " + name + ":= {" + ppl(bitmap.data, lengthInBytes, columns) + "};\n";
+            utf8 += "CONST " + name + ":= {" + ppl(bitmap.data, lengthInBytes, columns, le) + "};\n";
             break;
             
+        case 1:
         case 4:
         case 8:
             os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
@@ -393,14 +434,14 @@ int main(int argc, const char * argv[]) {
             os << "  FOR i := 1 TO SIZE(data) DO\n";
             os << "    LOCAL d := data[I];\n\n";
             os << "    FOR j := 1 TO 8 STEP s DO\n";
-            os << "      g[SIZE(L) + 1] := BITOR(palt[BITAND(BITSR(d, bpp), m) + 1], BITSL(palt[BITAND(d, m) + 1], 32));\n";
+            os << "      BITOR(palt[BITAND(d, m) + 1], BITSL(palt[BITAND(BITSR(d, bpp) m) + 1], 32)) ▶ g[SIZE(g) + 1];\n";
             os << "      d := BITSR(d, bpp * 2);\n";
             os << "   END;\n";
             os << "  END;\n\n";
             os << "  DIMGROB_P(trgtG, w, h, g);\n";
             os << "END;\n\n";
             os << "// { width, height }\n";
-            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n\n";
+            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << "\n};\n\n";
             os << "CONST " << name << "_palt := {\n  ";
             
             for (int i = 0; i < bitmap.palette.size(); i += 1) {
@@ -412,7 +453,7 @@ int main(int argc, const char * argv[]) {
             }
             os << "\n};\n\n";
             
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "\n};\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n";
             utf8.append(os.str());
             break;
         
@@ -420,7 +461,7 @@ int main(int argc, const char * argv[]) {
         default:
             os << "// { width, height }\n";
             os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n\n";
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns) << "\n};\n\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n\n";
             os << "DIMGROB_P(G" << grob << ", " << name << "_size[1], " << name << "_size[2], " << name << "_data);\n";
             utf8.append(os.str());
             break;
