@@ -354,13 +354,18 @@ int main(int argc, const char * argv[]) {
             case 1:
                 lengthInBytes = bitmap.width * bitmap.height / 8;
                 columns = bitmap.width / 64;
-                bitmap.palette.push_back(0xFF);
                 bitmap.palette.push_back(0xFFFFFFFF);
+                bitmap.palette.push_back(0xFF);
                 if (bitmap.data) {
                     uint8_t *bytes = (uint8_t *)bitmap.data;
                     for (int i = 0; i < lengthInBytes; i += 1) {
-                        // Swap nibbles
-                        bytes[i] = bytes[i] >> 4 | bytes[i] << 4;
+                        uint8_t result = 0;
+                        for (int n = 0; n < 8; n += 1) {
+                            result <<= 1;
+                            result |= bytes[i] & 1;
+                            bytes[i] >>= 1;
+                        }
+                        bytes[i] = result;
                     }
                 }
                 break;
