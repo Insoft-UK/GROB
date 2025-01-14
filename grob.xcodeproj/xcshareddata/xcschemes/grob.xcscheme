@@ -57,7 +57,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/spectrum-4bit.bmp"
+            argument = "$(PROJECT_DIR)/example/spectrum-8bit.bmp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

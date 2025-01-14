@@ -340,6 +340,15 @@ int main(int argc, const char * argv[]) {
             case 8:
                 lengthInBytes = bitmap.width * bitmap.height;
                 columns = bitmap.width / 8;
+                if (bitmap.data) {
+                    uint8_t *bytes = (uint8_t *)bitmap.data;
+                    for (int i = 0; i < lengthInBytes; i += 2) {
+                        // Swap with XOR
+                        bytes[i] ^= bytes[i + 1];
+                        bytes[i + 1] ^= bytes[i];
+                        bytes[i] ^= bytes[i + 1];
+                    }
+                }
                 break;
                 
             case 16:
