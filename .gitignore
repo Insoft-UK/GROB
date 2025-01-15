@@ -4,7 +4,4 @@ xcuserdata/
 *.sh
 bin/*
 releases
-www
-clean
-macos
 *.zip

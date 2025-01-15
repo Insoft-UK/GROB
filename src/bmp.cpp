@@ -106,6 +106,18 @@ TBitmap loadBitmapImage(const std::string& filename)
         return bitmap;
     }
     
+    /*
+     We verify whether the image data begins immediately after the file header.
+     If it does not, we ensure that biClrUsed is set correctly. Some software
+     that generates BMP files with a palette may incorrectly set biClrUsed to
+     zero, even when a palette is present, and this value needs to be corrected.
+     */
+    if (bip_header.biClrUsed == 0) {
+        if (bip_header.fileHeader.bfOffBits > sizeof(BIPHeader)) {
+            bip_header.biClrUsed = (bip_header.fileHeader.bfOffBits - sizeof(BIPHeader)) / sizeof(uint32_t);
+            bip_header.biClImportant = bip_header.biClrUsed;
+        }
+    }
     
     if (bip_header.biClrUsed) {
         for (int i = 0; i < bip_header.biClrUsed; i += 1) {
