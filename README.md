@@ -5,6 +5,6 @@ A utility for generating PPL code from an image file for use with the BLIT and B
 
 > [!NOTE]
 The only image file format currently supported by this utility tool is the Bitmap (BMP) format, with 4-bit, 8-bit, 16-bit, or 32-bit color depth.
->
+
 > [!WARNING]
 > GROB_P with 1-bit BMP files, currently not working correctly.
