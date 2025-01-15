@@ -222,7 +222,7 @@ void saveAs(std::string& filename, const std::string& str) {
 // MARK: - Main
 
 int main(int argc, const char * argv[]) {
-    std::string ifilename, ofilename, prefix, sufix, name;
+    std::string in_filename, out_filename, prefix, sufix, name;
     int columns = 8;
     int grob = 1;
     bool pplus = false;
@@ -240,9 +240,9 @@ int main(int argc, const char * argv[]) {
                 error();
                 exit(100);
             }
-            ofilename = argv[n + 1];
-            if (std::string::npos == ofilename.rfind('.')) {
-                ofilename += ".hpprgm";
+            out_filename = argv[n + 1];
+            if (std::string::npos == out_filename.rfind('.')) {
+                out_filename += ".hpprgm";
             }
 
             n++;
@@ -316,39 +316,34 @@ int main(int argc, const char * argv[]) {
         }
         
         
-        if (ifilename.empty()) ifilename = argv[n];
+        if (in_filename.empty()) in_filename = argv[n];
     }
     
     info();
     
-    if (ofilename.empty()) {
-        std::smatch m;
-        if (regex_search(ifilename, m, std::regex(R"(\w*(\.\w+)?$)"))) {
-            ofilename = m.str();
-        } else {
-            ofilename = ifilename;
-        }
-        ofilename = regex_replace(ofilename, std::regex(R"((\.\w+)?$)"), "");
-        ofilename += ".hpprgm";
+    if (out_filename.empty()) {
+        out_filename = regex_replace(in_filename, std::regex(R"((\.\w+)?$)"), "");
+        out_filename += ".hpprgm";
     }
     
     
-    if (!filesize(ifilename.c_str())) {
-        std::cout << "file '" << ifilename << "' not found.\n";
+    if (!filesize(in_filename.c_str())) {
+        std::cout << "file '" << in_filename << "' not found.\n";
         exit(0x01);
     }
     
     if (name.empty()) {
         std::smatch match;
-        regex_search(ofilename, match, std::regex(R"(^.*[\/\\](.*)\.(.*)$)"));
+        regex_search(out_filename, match, std::regex(R"(^.*[\/\\](.*)\.(.*)$)"));
         name = match[1].str();
+        name = regex_replace(name, std::regex(R"([-.])"), "_");
     }
     
     size_t lengthInBytes = 0;
     TBitmap bitmap{};
-    bitmap = loadBitmapImage(ifilename);
+    bitmap = loadBitmapImage(in_filename);
     if (!bitmap.data) {
-        lengthInBytes = loadBinaryFile(ifilename.c_str(), bitmap);
+        lengthInBytes = loadBinaryFile(in_filename.c_str(), bitmap);
     } else {
         switch (bitmap.bpp) {
             case 1:
@@ -373,7 +368,17 @@ int main(int argc, const char * argv[]) {
             case 4:
                 lengthInBytes = bitmap.width * bitmap.height / 2;
                 columns = bitmap.width / 16;
-                if (bitmap.data) {
+                if (bitmap.data && le) {
+                    /*
+                     Due to the use of little-endian format, when the 8-byte sequence
+                     is interpreted as a single 64-bit number, the bytes are stored in
+                     reverse order (from least significant to most significant).
+                     Since this data represents an image where each nibble corresponds
+                     to an index, we must first swap the nibbles in the entire data
+                     sequence to ensure they remain in the correct order when read from
+                     right to left.
+                     */
+                    
                     uint8_t *bytes = (uint8_t *)bitmap.data;
                     for (int i = 0; i < lengthInBytes; i += 1) {
                         // Swap nibbles
@@ -385,15 +390,6 @@ int main(int argc, const char * argv[]) {
             case 8:
                 lengthInBytes = bitmap.width * bitmap.height;
                 columns = bitmap.width / 8;
-//                if (bitmap.data) {
-//                    uint8_t *bytes = (uint8_t *)bitmap.data;
-//                    for (int i = 0; i < lengthInBytes; i += 2) {
-//                        // Swap with XOR
-//                        bytes[i] ^= bytes[i + 1];
-//                        bytes[i + 1] ^= bytes[i];
-//                        bytes[i] ^= bytes[i + 1];
-//                    }
-//                }
                 break;
                 
             case 16:
@@ -428,55 +424,36 @@ int main(int argc, const char * argv[]) {
         case 1:
         case 4:
         case 8:
-            os << "EXPORT GROB_P(trgtG, w, h, data, palt)\n";
-            os << "BEGIN\n";
-            os << "  LOCAL g := {}, i, j, d, bpp := 0;\n\n";
-            os << "  IF w * h / 64 == SIZE(data) THEN bpp := 1; END;\n";
-            os << "  IF w * h / 16 == SIZE(data) THEN bpp := 4; END;\n";
-            os << "  IF w * h / 8 == SIZE(data) THEN bpp := 8; END;\n\n";
-            os << "  IF bpp == 0 THEN RETURN; END;\n\n";
-            os << "  LOCAL m = 2 ^ bpp - 1;\n";
-            os << "  LOCAL s = bpp / 4;\n\n";
-            os << "  FOR i := 1 TO SIZE(data) DO\n";
-            os << "    LOCAL d := data[i];\n\n";
-            os << "    FOR j := 1 TO 8 STEP s DO\n";
-            os << "      g[SIZE(g) + 1] := BITOR(palt[BITAND(d, m) + 1], BITSL(palt[BITAND(BITSR(d, bpp), m) + 1], 32));\n";
-            os << "      d := BITSR(d, bpp * 2);\n";
-            os << "   END;\n";
-            os << "  END;\n\n";
-            os << "  DIMGROB_P(trgtG, w, h, g);\n";
-            os << "END;\n\n";
-            os << "// { width, height }\n";
-            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << "\n};\n\n";
             os << "CONST " << name << "_palt := {\n  ";
             
             for (int i = 0; i < bitmap.palette.size(); i += 1) {
                 uint32_t color = bitmap.palette.at(i);
-                color = color >> 8 | (255 - (color & 255)) << 24;
+                color = swap_endian(color);
+                color &= 0xFFFFFF;
                 if (i) os << ", ";
-                if (i % 16 == 0 && i) os << "\n";
+                if (i % 16 == 0 && i) os << "\n  ";
                 os << "#" << std::uppercase << std::hex << std::setfill('0') << std::setw(6) << color << ":64h";
             }
             os << "\n};\n\n";
             
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n\n";
+            os << "GROB_P(G" << grob << ", " << std::dec << bitmap.width << ", " << bitmap.height << ", " << name << "_data, " << name << "_palt);\n";
             utf8.append(os.str());
             break;
         
             
         default:
-            os << "// { width, height }\n";
-            os << "CONST " << name << "_size := {\n  " << bitmap.width << ", " << bitmap.height << bitmap.bpp << ", " << "\n};\n\n";
             os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n\n";
-            os << "DIMGROB_P(G" << grob << ", " << name << "_size[1], " << name << "_size[2], " << name << "_data);\n";
+            os << "DIMGROB_P(G" << grob << ", " << bitmap.width << ", " << bitmap.height << ", " << name << "_data);\n";
             utf8.append(os.str());
             break;
     }
     if (pplus) utf8.append("#END\n");
     
     releaseBitmap(bitmap);
-    saveAs(ofilename, utf8);
+    saveAs(out_filename, utf8);
     
+    std::cout << "UTF-16LE file '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";
     
     return 0;
 }

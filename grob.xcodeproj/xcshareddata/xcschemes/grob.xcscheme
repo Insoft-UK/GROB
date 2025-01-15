@@ -53,36 +53,40 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/example-1bit.bmp"
+            argument = "$(PROJECT_DIR)/example/example-32bit.bmp"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "$(PROJECT_DIR)/example/example-16bit.bmp -g 5"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-endian be"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/bitmap-1bit.bmp"
+            argument = "$(PROJECT_DIR)/example/bitmap.bmp"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/example/spectrum-4bit.bmp"
+            argument = "$(PROJECT_DIR)/example/spectrum-4bit.bmp -g 4"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "$(PROJECT_DIR)/example/spectrum-8bit.bmp"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-o $(PROJECT_DIR)/example/example"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-ppl"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-n insoft -c 16"
-            isEnabled = "YES">
+            argument = "-n bitmap -c 16"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--version"
