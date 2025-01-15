@@ -428,7 +428,9 @@ int main(int argc, const char * argv[]) {
             
             for (int i = 0; i < bitmap.palette.size(); i += 1) {
                 uint32_t color = bitmap.palette.at(i);
+#ifdef __LITTLE_ENDIAN__
                 color = swap_endian(color);
+#endif
                 color &= 0xFFFFFF;
                 if (i) os << ", ";
                 if (i % 16 == 0 && i) os << "\n  ";
