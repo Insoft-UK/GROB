@@ -2,10 +2,10 @@
 xcuserdata/
 .DS_Store
 *.sh
-bin/*
+*.zip
+build
 releases
 clean
 other
-macos
 www
-*.zip
+
