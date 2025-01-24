@@ -99,7 +99,7 @@ static std::ifstream::pos_type filesize(const char* filename)
     return pos;
 }
 
-static size_t loadBinaryFile(const char* filename, TBitmap& bitmap) {
+static size_t loadBinaryFile(const char* filename, TBitmap &bitmap) {
     size_t fsize;
     std::ifstream infile;
     
@@ -109,8 +109,9 @@ static size_t loadBinaryFile(const char* filename, TBitmap& bitmap) {
     
     if (!infile.is_open()) return 0;
 
-    if (!(bitmap.data = malloc(fsize))) return 0;
-    infile.read((char *)bitmap.data, fsize);
+    bitmap.bytes.reserve(fsize);
+    bitmap.bytes.resize(fsize);
+    infile.read((char *)bitmap.bytes.data(), fsize);
     bitmap.bpp = 0;
     
     infile.close();
@@ -157,7 +158,7 @@ void error(void) {
 
 void info(void) {
     std::cout << "Copyright (c) 2024 Insoft. All rights reserved.\n";
-    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n\n";
+    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << "\n\n";
 }
 
 
@@ -342,7 +343,7 @@ int main(int argc, const char * argv[]) {
     size_t lengthInBytes = 0;
     TBitmap bitmap{};
     bitmap = loadBitmapImage(in_filename);
-    if (!bitmap.data) {
+    if (bitmap.bytes.empty()) {
         lengthInBytes = loadBinaryFile(in_filename.c_str(), bitmap);
     } else {
         switch (bitmap.bpp) {
@@ -351,8 +352,8 @@ int main(int argc, const char * argv[]) {
                 columns = bitmap.width / 64;
                 bitmap.palette.push_back(0xFFFFFFFF);
                 bitmap.palette.push_back(0xFF);
-                if (bitmap.data) {
-                    uint8_t *bytes = (uint8_t *)bitmap.data;
+                if (!bitmap.bytes.empty()) {
+                    uint8_t *bytes = (uint8_t *)bitmap.bytes.data();
                     for (int i = 0; i < lengthInBytes; i += 1) {
                         uint8_t result = 0;
                         for (int n = 0; n < 8; n += 1) {
@@ -368,7 +369,7 @@ int main(int argc, const char * argv[]) {
             case 4:
                 lengthInBytes = bitmap.width * bitmap.height / 2;
                 columns = bitmap.width / 16;
-                if (bitmap.data && le) {
+                if (!bitmap.bytes.empty() && le) {
                     /*
                      Due to the use of little-endian format, when the 8-byte sequence
                      is interpreted as a single 64-bit number, the bytes are stored in
@@ -379,7 +380,7 @@ int main(int argc, const char * argv[]) {
                      right to left.
                      */
                     
-                    uint8_t *bytes = (uint8_t *)bitmap.data;
+                    uint8_t *bytes = (uint8_t *)bitmap.bytes.data();
                     for (int i = 0; i < lengthInBytes; i += 1) {
                         // Swap nibbles
                         bytes[i] = bytes[i] >> 4 | bytes[i] << 4;
@@ -401,7 +402,6 @@ int main(int argc, const char * argv[]) {
                 break;
                 
             default:
-                releaseBitmap(bitmap);
                 return -1;
                 break;
         }
@@ -418,7 +418,7 @@ int main(int argc, const char * argv[]) {
     
     switch (bitmap.bpp) {
         case 0:
-            utf8 += "CONST " + name + ":= {" + ppl(bitmap.data, lengthInBytes, columns, le) + "};\n";
+            utf8 += "CONST " + name + ":= {" + ppl(bitmap.bytes.data(), lengthInBytes, columns, le) + "};\n";
             break;
             
         case 1:
@@ -438,21 +438,20 @@ int main(int argc, const char * argv[]) {
             }
             os << "\n};\n\n";
             
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.bytes.data(), lengthInBytes, columns, le) << "\n};\n\n";
             os << "GROB_P(G" << grob << ", " << std::dec << bitmap.width << ", " << bitmap.height << ", " << name << "_data, " << name << "_palt);\n";
             utf8.append(os.str());
             break;
         
             
         default:
-            os << "CONST " << name << "_data := {\n" << ppl(bitmap.data, lengthInBytes, columns, le) << "\n};\n\n";
+            os << "CONST " << name << "_data := {\n" << ppl(bitmap.bytes.data(), lengthInBytes, columns, le) << "\n};\n\n";
             os << "DIMGROB_P(G" << grob << ", " << bitmap.width << ", " << bitmap.height << ", " << name << "_data);\n";
             utf8.append(os.str());
             break;
     }
     if (pplus) utf8.append("#END\n");
     
-    releaseBitmap(bitmap);
     saveAs(out_filename, utf8);
     
     std::cout << "UTF-16LE file '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";

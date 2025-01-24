@@ -27,13 +27,16 @@
 #include <stdint.h>
 #include <vector>
 
-typedef struct __attribute__((__packed__)) {
+#ifndef __BITMAP_TYPE
+#define __BITMAP_TYPE
+typedef struct {
     uint16_t width;
     uint16_t height;
     uint8_t  bpp;
     std::vector<uint32_t> palette;
-    void *data;
+    std::vector<uint8_t> bytes;
 } TBitmap;
+#endif
 
 /**
  @brief    Loads a file in the Bitmap (BMP) format.
@@ -42,10 +45,5 @@ typedef struct __attribute__((__packed__)) {
  */
 TBitmap loadBitmapImage(const std::string &filename);
 
-/**
- @brief    Frees the memory allocated for the bitmap image.
- @param    bitmap The bitmap image to be deallocated.
- */
-void releaseBitmap(TBitmap& bitmap);
 
 #endif /* bmp_hpp */

@@ -68,7 +68,7 @@ template <typename T> static T swap_endian(T u) {
 
 static void flipBitmapImageVertically(const TBitmap& bitmap)
 {
-    uint8_t *byte = (uint8_t *)bitmap.data;
+    uint8_t *byte = (uint8_t *)bitmap.bytes.data();
     int w = (int)((float)bitmap.width / (8.0 / (float)bitmap.bpp));
     int h = (int)bitmap.height;
     
@@ -100,8 +100,9 @@ TBitmap loadBitmapImage(const std::string& filename)
     }
     
     bitmap.bpp = bip_header.biBitCount;
-    bitmap.data = (unsigned char *)malloc(bip_header.biSizeImage);
-    if (!bitmap.data) {
+    bitmap.bytes.reserve(bip_header.biSizeImage);
+    bitmap.bytes.resize(bip_header.biSizeImage);
+    if (bitmap.bytes.empty()) {
         infile.close();
         return bitmap;
     }
@@ -135,7 +136,7 @@ TBitmap loadBitmapImage(const std::string& filename)
     bitmap.width = abs(bip_header.biWidth);
     bitmap.height = abs(bip_header.biHeight);
     size_t length = (size_t)((float)bitmap.width / (8.0 / (float)bip_header.biBitCount));
-    uint8_t* bytes = (uint8_t *)bitmap.data;
+    uint8_t* bytes = (uint8_t *)bitmap.bytes.data();
     
     infile.seekg(bip_header.fileHeader.bfOffBits, std::ios_base::beg);
     for (int r = 0; r < bitmap.height; ++r) {
@@ -163,11 +164,4 @@ TBitmap loadBitmapImage(const std::string& filename)
     return bitmap;
 }
 
-void releaseBitmap(TBitmap& bitmap)
-{
-    bitmap.palette.resize(0);
-    if (!bitmap.data) return;
-    
-    free(bitmap.data);
-    bitmap.data = nullptr;
-}
+
