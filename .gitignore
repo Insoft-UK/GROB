@@ -3,9 +3,6 @@ xcuserdata/
 .DS_Store
 *.sh
 *.zip
-build
-releases
-clean
-other
+*.pkg
 www
 
