@@ -11,6 +11,8 @@ pkgbuild --root package-root \
          --scripts scripts \
          grob.pkg
  
+IDENTITY=$(security find-identity -v -p basic | grep "Developer ID Installer" | awk '{print $2}')
+productsign --sign "$IDENTITY" grob.pkg grob-signed.pkg
 
 read -p "Press Enter to exit!"
 
