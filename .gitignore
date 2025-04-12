@@ -4,5 +4,6 @@ xcuserdata/
 *.sh
 *.zip
 *.pkg
+build
 www
 
