@@ -1,9 +1,2 @@
-*.xcworkspace/xcuserdata/
-xcuserdata/
 .DS_Store
-*.sh
-*.zip
-*.pkg
-build
-www
 
