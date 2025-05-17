@@ -12,3 +12,5 @@ grob spectrum-8bit.bmp -g 1
 > [!NOTE]
 The only image file format currently supported by this utility tool is the Bitmap (BMP) format, with 1-bit, 4-bit, 8-bit, 16-bit, or 32-bit color depth.
 
+>[!WARNING]
+Future updates will no longer be uploaded to this GitHub repository. Instead, all future updates will be available at the <a href="https://github.com/Insoft-UK/PrimeSDK">PrimeSDK</a> repository.
