@@ -1,6 +1,8 @@
 <img src="https://raw.githubusercontent.com/Insoft-UK/PrimeSDK/main/assets/PrimeSDK.png" style="width: 128px" />
 
-# GROB
+## GROB
+**Command Line Tool**
+
 A utility for generating PPL code from an image file for use with the BLIT and BLIT_P functions on the HP Prime.
 
 <img width="64" height="64" src="https://github.com/Insoft-UK/PrimeSDK/blob/main/assets/spectrum-8bit.png" >
