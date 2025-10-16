@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 // 
-// Copyright (c) 2024-2025 Insoft. All rights reserved.
+// Copyright (c) 2024-2025 Insoft.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -399,9 +399,12 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
-    utf::save_as_utf16(out_filename, utf8);
-    
-    std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";
+    utf::save(out_filename, utf::utf16(utf8));
+    if (std::filesystem::exists(out_filename)) {
+        std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";
+    } else {
+        std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' unsuccefuly created.\n";
+    }
     
     return 0;
 }
