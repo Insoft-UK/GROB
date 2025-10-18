@@ -135,31 +135,33 @@ std::string expandTilde(const std::string &path) {
 
 void help(void)
 {
-    std::cout << "Copyright (C) 2024-" << YEAR << " Insoft. All rights reserved.\n";
-    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n";
-    std::cout << "\n";
-    std::cout << "Usage: " << COMMAND_NAME << " <input-file> [-o <output-file>] [-c <columns>] [-n <name>] [-g<1-9>] [-ppl] \n";
-    std::cout << "\n";
-    std::cout << "Options:\n";
-    std::cout << "  -o <output-file>           Specify the filename for generated PPL code.\n";
-    std::cout << "  -c <columns>               Number of columns.\n";
-    std::cout << "  -n <name>                  Custom name.\n";
-    std::cout << "  -G<1-9>                    Graphic object G1-G9 to use if file is an image.\n";
-    std::cout << "  --pragma                   Include \"#pragma mode( separator(.,;) integer(h64) )\" line.\n";
-    std::cout << "  --endian <le|be>           Endianes le(default).\n";
-    std::cout << "\n";
-    std::cout << "Additional Commands:\n";
-    std::cout << "  " << COMMAND_NAME << " {--version | --help}\n";
-    std::cout << "    --version                Display the version information.\n";
-    std::cout << "    --help                   Show this help message.\n";
+    std::cout
+    << "Copyright (C) 2024-" << YEAR << " Insoft.\n"
+    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
+    << "\n"
+    << "Usage: " << COMMAND_NAME << " <input-file> [-o <output-file>] [-c <columns>] [-n <name>] [-g<1-9>] [-ppl] \n"
+    << "\n"
+    << "Options:\n"
+    << "  -o <output-file>           Specify the filename for generated PPL code.\n"
+    << "  -c <columns>               Number of columns.\n"
+    << "  -n <name>                  Custom name.\n"
+    << "  -G<1-9>                    Graphic object G1-G9 to use if file is an image.\n"
+    << "  --pragma                   Include \"#pragma mode( separator(.,;) integer(h64) )\" line.\n"
+    << "  --endian <le|be>           Endianes le(default).\n"
+    << "\n"
+    << "Additional Commands:\n"
+    << "  " << COMMAND_NAME << " {--version | --help}\n"
+    << "    --version                Display the version information.\n"
+    << "    --help                   Show this help message.\n";
 }
 
 void version(void) {
-    std::cout << "Copyright (C) 2024 Insoft. All rights reserved.\n";
-    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n";
-    std::cout << "Built on: " << DATE << "\n";
-    std::cout << "Licence: MIT License\n\n";
-    std::cout << "For more information, visit: http://www.insoft.uk\n";
+    std::cout 
+    << "Copyright (C) 2024 Insoft.\n"
+    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
+    << "Built on: " << DATE << "\n"
+    << "Licence: MIT License\n\n"
+    << "For more information, visit: http://www.insoft.uk\n";
 }
 
 void error(void) {
@@ -168,8 +170,9 @@ void error(void) {
 }
 
 void info(void) {
-    std::cout << "Copyright (c) 2024 Insoft. All rights reserved.\n";
-    std::cout << "Insoft "<< NAME << " version, " << VERSION_NUMBER << "\n\n";
+    std::cout 
+    << "Copyright (c) 2024 Insoft.\n"
+    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << "\n\n";
 }
 
 // MARK: - Main
@@ -198,6 +201,11 @@ int main(int argc, const char * argv[]) {
                 exit(100);
             }
             out_filename = argv[n + 1];
+            if (out_filename == "-") out_filename = "/dev/stdout";
+            if (out_filename == "/dev/stdout") {
+                n++;
+                continue;
+            }
             out_filename = expandTilde(out_filename);
             if (std::filesystem::path(out_filename).extension().empty()) out_filename.append(".prgm");
     
@@ -268,7 +276,7 @@ int main(int argc, const char * argv[]) {
         if (in_filename.empty()) in_filename = argv[n];
     }
     
-    info();
+    
     
     in_filename = expandTilde(in_filename);
     
@@ -399,6 +407,12 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
+    if (out_filename == "/dev/stdout") {
+        std::cout << utf8;
+        return 0;
+    }
+    
+    info();
     utf::save(out_filename, utf::utf16(utf8));
     if (std::filesystem::exists(out_filename)) {
         std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";

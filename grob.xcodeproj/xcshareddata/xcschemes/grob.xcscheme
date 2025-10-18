@@ -81,8 +81,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-o $(PROJECT_DIR)/example/example"
-            isEnabled = "NO">
+            argument = "-o /dev/stdout"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-ppl"
