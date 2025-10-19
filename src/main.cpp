@@ -170,9 +170,24 @@ void error(void) {
 }
 
 void info(void) {
-    std::cout 
-    << "Copyright (c) 2024 Insoft.\n"
-    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << "\n\n";
+    using namespace std;
+    std::cout
+    << "          ***********     \n"
+    << "        ************      \n"
+    << "      ************        \n"
+    << "    ************  **      \n"
+    << "  ************  ******    \n"
+    << "************  **********  \n"
+    << "**********    ************\n"
+    << "************    **********\n"
+    << "  **********  ************\n"
+    << "    ******  ************  \n"
+    << "      **  ************    \n"
+    << "        ************      \n"
+    << "      ************        \n"
+    << "    ************          \n\n"
+    << "Copyright (C) 2024-" << YEAR << " Insoft.\n"
+    << "Insoft " << NAME << "\n\n";
 }
 
 // MARK: - Main
@@ -281,7 +296,7 @@ int main(int argc, const char * argv[]) {
     in_filename = expandTilde(in_filename);
     
     if (!std::filesystem::exists(in_filename)) {
-        std::cout << "file '" << in_filename << "' not found.\n";
+        std::cout << "❓File '" << in_filename << "' not found.\n";
         return 0;
     }
     
@@ -415,9 +430,9 @@ int main(int argc, const char * argv[]) {
     info();
     utf::save(out_filename, utf::utf16(utf8));
     if (std::filesystem::exists(out_filename)) {
-        std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' succefuly created.\n";
+        std::cout << "✅ File " << std::filesystem::path(out_filename).filename() << " succefuly created.\n";
     } else {
-        std::cout << "File '" << regex_replace(out_filename, std::regex(R"(.*/)"), "") << "' unsuccefuly created.\n";
+        std::cout << "❌ Unable to create file " << std::filesystem::path(out_filename).filename() << ".\n";
     }
     
     return 0;
