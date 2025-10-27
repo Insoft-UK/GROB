@@ -135,7 +135,7 @@ std::string expandTilde(const std::string &path) {
 
 void help(void)
 {
-    std::cout
+    std::cerr
     << "Copyright (C) 2024-" << YEAR << " Insoft.\n"
     << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
     << "\n"
@@ -156,7 +156,7 @@ void help(void)
 }
 
 void version(void) {
-    std::cout 
+    std::cerr
     << "Copyright (C) 2024 Insoft.\n"
     << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
     << "Built on: " << DATE << "\n"
@@ -165,13 +165,13 @@ void version(void) {
 }
 
 void error(void) {
-    std::cout << COMMAND_NAME << ": try '" << COMMAND_NAME << " --help' for more information\n";
+    std::cerr << COMMAND_NAME << ": try '" << COMMAND_NAME << " --help' for more information\n";
     exit(0);
 }
 
 void info(void) {
     using namespace std;
-    std::cout
+    std::cerr
     << "          ***********     \n"
     << "        ************      \n"
     << "      ************        \n"
@@ -296,7 +296,7 @@ int main(int argc, const char * argv[]) {
     in_filename = expandTilde(in_filename);
     
     if (!std::filesystem::exists(in_filename)) {
-        std::cout << "❓File '" << in_filename << "' not found.\n";
+        std::cerr << "❓File '" << in_filename << "' not found.\n";
         return 0;
     }
     
@@ -422,17 +422,17 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
-    if (out_filename == "/dev/stdout") {
-        std::cout << utf8;
-        return 0;
-    }
     
     info();
-    utf::save(out_filename, utf::utf16(utf8));
-    if (std::filesystem::exists(out_filename)) {
-        std::cout << "✅ File " << std::filesystem::path(out_filename).filename() << " succefuly created.\n";
+    if (out_filename == "dev/stdout") {
+        std::cout << utf8;
     } else {
-        std::cout << "❌ Unable to create file " << std::filesystem::path(out_filename).filename() << ".\n";
+        utf::save(out_filename, utf::utf16(utf8));
+    }
+    if (std::filesystem::exists(out_filename)) {
+        std::cerr << "✅ File " << std::filesystem::path(out_filename).filename() << " succefuly created.\n";
+    } else {
+        std::cerr << "❌ Unable to create file " << std::filesystem::path(out_filename).filename() << ".\n";
     }
     
     return 0;
