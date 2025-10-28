@@ -170,7 +170,6 @@ void error(void) {
 }
 
 void info(void) {
-    using namespace std;
     std::cerr
     << "          ***********     \n"
     << "        ************      \n"
@@ -216,14 +215,10 @@ int main(int argc, const char * argv[]) {
                 exit(100);
             }
             out_filename = argv[n + 1];
-            if (out_filename == "-") out_filename = "/dev/stdout";
-            if (out_filename == "/dev/stdout") {
-                n++;
-                continue;
+            if (out_filename != "/dev/stdout") {
+                out_filename = expandTilde(out_filename);
+                if (std::filesystem::path(out_filename).extension().empty()) out_filename.append(".prgm");
             }
-            out_filename = expandTilde(out_filename);
-            if (std::filesystem::path(out_filename).extension().empty()) out_filename.append(".prgm");
-    
             n++;
             continue;
         }
@@ -290,7 +285,7 @@ int main(int argc, const char * argv[]) {
         
         if (in_filename.empty()) in_filename = argv[n];
     }
-    
+    info();
     
     
     in_filename = expandTilde(in_filename);
@@ -305,10 +300,17 @@ int main(int argc, const char * argv[]) {
         out_filename = path.parent_path().string() + "/" + path.stem().string() + ".prgm";
     }
     
+    /*
+     We need to ensure that the specified output filename includes a path.
+     If no path is provided, we prepend the path from the input file.
+     */
+    if (std::filesystem::path(out_filename).parent_path().empty()) {
+        out_filename.insert(0, "/");
+        out_filename.insert(0, std::filesystem::path(in_filename).parent_path());
+    }
+    
     if (name.empty()) {
-        std::smatch match;
-        regex_search(out_filename, match, std::regex(R"(^.*[\/\\](.*)\.(.*)$)"));
-        name = match[1].str();
+        name = std::filesystem::path(in_filename).stem();
         name = regex_replace(name, std::regex(R"([-.])"), "_");
     }
     
@@ -422,9 +424,8 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
-    
-    info();
-    if (out_filename == "dev/stdout") {
+
+    if (out_filename == "/dev/stdout") {
         std::cout << utf8;
     } else {
         utf::save(out_filename, utf::utf16(utf8));
