@@ -137,7 +137,7 @@ void help(void)
 {
     std::cerr
     << "Copyright (C) 2024-" << YEAR << " Insoft.\n"
-    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
+    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << BUNDLE_VERSION << ")\n"
     << "\n"
     << "Usage: " << COMMAND_NAME << " <input-file> [-o <output-file>] [-c <columns>] [-n <name>] [-g<1-9>] [-ppl] \n"
     << "\n"
@@ -158,7 +158,7 @@ void help(void)
 void version(void) {
     std::cerr
     << "Copyright (C) 2024 Insoft.\n"
-    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << VERSION_CODE << ")\n"
+    << "Insoft "<< NAME << " version, " << VERSION_NUMBER << " (BUILD " << BUNDLE_VERSION << ")\n"
     << "Built on: " << DATE << "\n"
     << "Licence: MIT License\n\n"
     << "For more information, visit: http://www.insoft.uk\n";
@@ -285,7 +285,7 @@ int main(int argc, const char * argv[]) {
         
         if (in_filename.empty()) in_filename = argv[n];
     }
-    info();
+    if (out_filename != "/dev/stdout") info();
     
     
     in_filename = expandTilde(in_filename);
