@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		1352EDF62B4786BD003130E4 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1352EDF42B4786BC003130E4 /* main.cpp */; };
 		136E64402D25AF090054E0CC /* bmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 136E643F2D25AF090054E0CC /* bmp.cpp */; };
-		13C68D532EA00BE100DE3846 /* utf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13C68D522EA00BE100DE3846 /* utf.cpp */; };
+		13EE54302EC1730A00A8F770 /* utf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE542F2EC1730A00A8F770 /* utf.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,9 +31,9 @@
 		136E64442D262CE90054E0CC /* version.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = version.txt; sourceTree = "<group>"; };
 		138F54D42C977703009357F9 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		138F54D52C977708009357F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		13C68D522EA00BE100DE3846 /* utf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utf.cpp; sourceTree = "<group>"; };
-		13C68D542EA00BEB00DE3846 /* utf.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utf.hpp; sourceTree = "<group>"; };
 		13EBE2F32B22249100302F26 /* grob */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = grob; sourceTree = BUILT_PRODUCTS_DIR; };
+		13EE542E2EC1730A00A8F770 /* utf.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utf.hpp; sourceTree = "<group>"; };
+		13EE542F2EC1730A00A8F770 /* utf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utf.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -55,8 +55,8 @@
 			isa = PBXGroup;
 			children = (
 				1352EDF42B4786BC003130E4 /* main.cpp */,
-				13C68D542EA00BEB00DE3846 /* utf.hpp */,
-				13C68D522EA00BE100DE3846 /* utf.cpp */,
+				13EE542E2EC1730A00A8F770 /* utf.hpp */,
+				13EE542F2EC1730A00A8F770 /* utf.cpp */,
 				136E643E2D25AF090054E0CC /* bmp.hpp */,
 				136E643F2D25AF090054E0CC /* bmp.cpp */,
 			);
@@ -140,7 +140,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13C68D532EA00BE100DE3846 /* utf.cpp in Sources */,
+				13EE54302EC1730A00A8F770 /* utf.cpp in Sources */,
 				136E64402D25AF090054E0CC /* bmp.cpp in Sources */,
 				1352EDF62B4786BD003130E4 /* main.cpp in Sources */,
 			);
@@ -265,11 +265,13 @@
 		13EBE2F82B22249100302F26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 8XN79M4JCJ;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -278,11 +280,13 @@
 		13EBE2F92B22249100302F26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 8XN79M4JCJ;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

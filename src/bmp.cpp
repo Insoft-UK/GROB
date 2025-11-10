@@ -23,6 +23,8 @@
 #include "bmp.hpp"
 
 #include <fstream>
+#include <string_view>
+
 
 /* Windows 3.x bitmap file header */
 typedef struct __attribute__((__packed__)) {
@@ -94,7 +96,9 @@ TBitmap loadBitmapImage(const std::string& filename)
     
     infile.read((char *)&bip_header, sizeof(BIPHeader));
 
-    if (strncmp(bip_header.fileHeader.bfType, "BM", 2) != 0) {
+    std::string_view type{bip_header.fileHeader.bfType, 2};
+    
+    if (type != "BM") {
         infile.close();
         return bitmap;
     }

@@ -23,11 +23,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <regex>
 #include <cstring>
 #include <iomanip>
 #include <cstdint>
-#include "../../PrimePlus/src/utf.hpp"
+#include "utf.hpp"
 
 #include "../version_code.h"
 #include "bmp.hpp"
@@ -189,10 +190,24 @@ void info(void) {
     << "Insoft " << NAME << "\n\n";
 }
 
+namespace fs = std::filesystem;
+
+fs::path expand_tilde(const fs::path& path) {
+    if (!path.empty() && path.string()[0] == '~') {
+        const char* home = std::getenv("HOME"); // Unix/macOS
+        if (!home) home = std::getenv("USERPROFILE"); // Windows
+        if (!home) throw std::runtime_error("Cannot expand ~: HOME/USERPROFILE not set");
+        return fs::path(home) / path.string().substr(1);
+    }
+    return fs::path(path);
+}
+
 // MARK: - Main
 
 int main(int argc, const char * argv[]) {
-    std::string in_filename, out_filename, prefix, sufix, name;
+    std::string prefix, sufix, name;
+    fs::path inpath, outpath;
+    
     int columns = 8;
     std::string grob("G0");
     bool le = true;
@@ -214,12 +229,8 @@ int main(int argc, const char * argv[]) {
                 error();
                 exit(100);
             }
-            out_filename = argv[n + 1];
-            if (out_filename != "/dev/stdout") {
-                out_filename = expandTilde(out_filename);
-                if (std::filesystem::path(out_filename).extension().empty()) out_filename.append(".prgm");
-            }
-            n++;
+            outpath = fs::path(argv[++n]);
+            outpath = expand_tilde(outpath);
             continue;
         }
         
@@ -283,42 +294,41 @@ int main(int argc, const char * argv[]) {
         }
         
         
-        if (in_filename.empty()) in_filename = argv[n];
+        if (inpath.empty()) {
+            inpath = fs::path(argv[n]);
+            inpath = expand_tilde(inpath);
+        }
     }
-    if (out_filename != "/dev/stdout") info();
+    if (outpath != "/dev/stdout") info();
     
-    
-    in_filename = expandTilde(in_filename);
-    
-    if (!std::filesystem::exists(in_filename)) {
-        std::cerr << "❓File '" << in_filename << "' not found.\n";
+    if (!fs::exists(inpath)) {
+        std::cerr << "❓File '" << inpath << "' not found.\n";
         return 0;
     }
     
-    if (out_filename.empty()) {
-        std::filesystem::path path = std::filesystem::path(in_filename);
-        out_filename = path.parent_path().string() + "/" + path.stem().string() + ".prgm";
+    if (outpath.empty()) {
+        outpath = inpath.parent_path() / (inpath.stem().string() + ".prgm");
     }
     
     /*
      We need to ensure that the specified output filename includes a path.
      If no path is provided, we prepend the path from the input file.
      */
-    if (std::filesystem::path(out_filename).parent_path().empty()) {
-        out_filename.insert(0, "/");
-        out_filename.insert(0, std::filesystem::path(in_filename).parent_path());
+    
+    if (outpath.parent_path().empty()) {
+        outpath = fs::path("./") / inpath.parent_path();
     }
     
     if (name.empty()) {
-        name = std::filesystem::path(in_filename).stem();
+        name = inpath.stem().string();
         name = regex_replace(name, std::regex(R"([-.])"), "_");
     }
     
     size_t lengthInBytes = 0;
     TBitmap bitmap{};
-    bitmap = loadBitmapImage(in_filename);
+    bitmap = loadBitmapImage(inpath.string());
     if (bitmap.bytes.empty()) {
-        lengthInBytes = loadBinaryFile(in_filename.c_str(), bitmap);
+        lengthInBytes = loadBinaryFile(inpath.string().c_str(), bitmap);
     } else {
         switch (bitmap.bpp) {
             case 1:
@@ -425,15 +435,16 @@ int main(int argc, const char * argv[]) {
     }
     
 
-    if (out_filename == "/dev/stdout") {
+    if (outpath == "/dev/stdout") {
         std::cout << utf8;
     } else {
-        utf::save(out_filename, utf::utf16(utf8));
+        std::wstring utf16 = utf::utf16(utf8);
+        utf::save(outpath, utf16);
     }
-    if (std::filesystem::exists(out_filename)) {
-        std::cerr << "✅ File " << std::filesystem::path(out_filename).filename() << " succefuly created.\n";
+    if (fs::exists(outpath)) {
+        std::cerr << "✅ File " << outpath.filename() << " succefuly created.\n";
     } else {
-        std::cerr << "❌ Unable to create file " << std::filesystem::path(out_filename).filename() << ".\n";
+        std::cerr << "❌ Unable to create file " << outpath.filename() << ".\n";
     }
     
     return 0;

@@ -7,4 +7,5 @@ version.txt
 build
 make
 *.pkg
+*.zip
 examples
